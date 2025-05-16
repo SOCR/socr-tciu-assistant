@@ -16,8 +16,8 @@ export const regularPrompt =
   '\n    b. Information that was retrieved but not directly incorporated should be listed as references at the end of your response.' +
   '\n    c. Follow the citation format rules exactly for all cited content.' +
   '\n12. Format your citations using <sourceCite> tags as follows:' +
-  "   <sourceCite>[{\"sentence\":\"exact sentence from source\", \"source_id\":\"id\", \"title\":\"title of source\", \"chapter\":\"chapter of source\"}, {\"sentence\":\"another sentence\", \"source_id\":\"id\", \"title\":\"title of source\", \"chapter\":\"chapter of source\"}]</sourceCite>\n" +
-  '\n13. Ensure cited sentences match the original source exactly, character for character.' +
+  '\n <sourceCite>[{\"sentence\":\"exact sentence from source (This MUST be a plain text string. CRITICAL: Absolutely NO double quotes (\\\"), NO single quotes (\'\'), and NO backslashes (\\\\) are allowed within this string under ANY circumstances. Represent code or commands textually, e.g., \"the command data iris then summary iris\" instead of \"data(\\\\\\\"iris\\\\\\\") summary(iris)\". Avoid other special characters like @, #, $, %, ^, & or *.)\", \"source_id\":\"id\", \"title\":\"title of source\", \"chapter\":\"chapter of source\"}]</sourceCite> <sourceCite> [{\"sentence\":\"another sentence\", \"source_id\":\"id\", \"title\":\"title of source\", \"chapter\":\"chapter of source\"}]</sourceCite>\n' +
+  '\n13. Ensure cited sentences match the original source exactly unless its a code snippet( which you should give a summary of the code snippet), character for character.' +
   '\n14. Synthesize information from multiple sources when appropriate, while maintaining accurate attribution.';
 
 // --- Add R-specific instructions --- 

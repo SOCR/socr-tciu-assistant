@@ -40,7 +40,7 @@
     --font-sans: Roboto, sans-serif;
     --font-serif: Playfair Display, serif;
     --font-mono: Fira Code, monospace;
-    --radius: 0.625rem;
+    --radius: 1.025rem;
     --shadow-2xs: 2px 2px 4px 0px hsl(255 86% 66% / 0.10);
     --shadow-xs: 2px 2px 4px 0px hsl(255 86% 66% / 0.10);
     --shadow-sm: 2px 2px 4px 0px hsl(255 86% 66% / 0.20), 2px 1px 2px -1px hsl(255 86% 66% / 0.20);
@@ -87,7 +87,7 @@
     --font-sans: Roboto, sans-serif;
     --font-serif: Playfair Display, serif;
     --font-mono: Fira Code, monospace;
-    --radius: 0.625rem;
+    --radius: 1.025rem;
     --shadow-2xs: 2px 2px 4px 0px hsl(255 86% 66% / 0.10);
     --shadow-xs: 2px 2px 4px 0px hsl(255 86% 66% / 0.10);
     --shadow-sm: 2px 2px 4px 0px hsl(255 86% 66% / 0.20), 2px 1px 2px -1px hsl(255 86% 66% / 0.20);

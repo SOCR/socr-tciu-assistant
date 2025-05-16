@@ -16,24 +16,24 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
 
   const suggestedActions = [
     {
-      title: '🕰️ Explain the concept of',
+      title: '🕰️ Explain',
       label: 'Kime in Spacekime Analytics',
       action: 'Explain the fundamental concept of Kime in Spacekime Analytics and how it differs from traditional time series analysis.',
     },
     {
-      title: '📊 Show me examples of',
-      label: 'Complex-time transforms',
-      action: 'Show examples of how complex-time transforms can be applied to longitudinal data analysis with explanations of the mathematical foundations.',
+      title: '📉 Illustrate TCIU reduction with',
+      label: 'a Python example',
+      action: 'Provide a Python code example demonstrating how Spacekime analytics can reduce Time Complexity and Inferential Uncertainty (TCIU) in a sample dataset. Explain the results.',
     },
     {
-      title: '🧠 How does Spacekime reduce',
-      label: 'inferential uncertainty?',
-      action: 'How does the Spacekime framework help reduce inferential uncertainty in predictive analytics compared to traditional approaches?',
+      title: '⚙️ Generate R code for',
+      label: 'Spacekime transformation',
+      action: 'Generate an R code snippet that performs a basic Spacekime transformation on a sample time series. Include comments to explain each step.',
     },
     {
-      title: '🌊 Applications of Spacekime in',
-      label: 'economic forecasting',
-      action: 'What are the practical applications of Spacekime Analytics in economic forecasting and time series prediction?',
+      title: '🔎 Compare Spacekime with',
+      label: 'traditional methods for TCIU',
+      action: 'Compare and contrast Spacekime Analytics with traditional statistical methods in terms of addressing Time Complexity and Inferential Uncertainty (TCIU).',
     },
   ];
 

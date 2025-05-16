@@ -64,7 +64,7 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 }
 
 // Function to create component map, including the citation counter
-const createMarkdownComponents = (citationCounter: React.MutableRefObject<number>): Partial<Components> => ({
+const createMarkdownComponents = (citationMap: React.MutableRefObject<Map<string, number>>): Partial<Components> => ({
   // @ts-ignore - The inline prop is passed by ReactMarkdown but not in type defs
   code: EnhancedCodeBlock, // Use the dynamically imported component
   
@@ -74,11 +74,33 @@ const createMarkdownComponents = (citationCounter: React.MutableRefObject<number
     if (!jsonContent) {
       return <span className="text-red-500">[Empty SourceCite Tag]</span>;
     }
-    citationCounter.current += 1; // Increment counter
+
+    let citationNumber;
+    try {
+      const parsedContent = JSON.parse(jsonContent);
+      // Assuming the content is an array and we take the first item's source_id
+      const sourceId = parsedContent?.[0]?.source_id;
+
+      if (!sourceId) {
+        console.error("SourceCite: source_id not found in JSON content", jsonContent);
+        return <span className="text-red-500">[Malformed SourceCite Tag - No ID]</span>;
+      }
+
+      if (citationMap.current.has(sourceId)) {
+        citationNumber = citationMap.current.get(sourceId)!;
+      } else {
+        citationNumber = citationMap.current.size + 1;
+        citationMap.current.set(sourceId, citationNumber);
+      }
+    } catch (error) {
+      console.error("Error parsing SourceCite JSON content:", error, jsonContent);
+      return <span className="text-red-500">[Invalid SourceCite JSON]</span>;
+    }
+    
     return (
       <SourceCitationDisplay 
         jsonContent={jsonContent}
-        citationNumber={citationCounter.current} 
+        citationNumber={citationNumber} 
       />
     );
   },
@@ -210,16 +232,16 @@ export const MemoizedMarkdown = memo(
     // Split content into blocks using marked tokenizer - memoized
     const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
     
-    // Ref to keep track of citation numbers across blocks within a single message
-    const citationCounter = useRef(0);
+    // Ref to keep track of citation numbers for unique source_ids within a single message
+    const citationIdMap = useRef<Map<string, number>>(new Map());
     
     // Reset counter when content/id changes (new message) using useEffect
     useEffect(() => {
-        citationCounter.current = 0;
+        citationIdMap.current.clear(); // Clear the map for new messages
     }, [content, id]);
     
     // Create the components map once per render, including the counter ref
-    const components = useMemo(() => createMarkdownComponents(citationCounter), []); // citationCounter ref is stable
+    const components = useMemo(() => createMarkdownComponents(citationIdMap), []); // citationIdMap ref is stable
     
     // Create a memoized callback for creating block IDs
     const getBlockId = useCallback((index: number) => `${id}-block-${index}`, [id]);
