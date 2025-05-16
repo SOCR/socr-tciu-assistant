@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "created_at": "2025-05-15T17:01:01.111459",
+    "total_sections": 2,
+    "total_code_chunks": 2,
+    "total_tables": 1,
+    "r_libraries": [
+      "ggplot2",
+      "plotly"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Main",
+      "content": "---\ntitle: \"Non-Euclidean Kime Manifold\"\nsubtitle: \"[Back To TCIU Contents](http://tciu.predictive.space/)\"\nauthor: \"SOCR Team \"\ndate: \"`r format(Sys.time(),'%m/%d/%Y')`\"\noutput: \n  html_document:\n    theme: spacelab\n    highlight: tango\n    includes:\n      before_body: TCIU_header.html\n    toc: true\n    number_sections: true\n    toc_depth: 2\n    toc_float:\n      collapsed: false\n      smooth_scroll: true",
+      "word_count": 37
+    },
+    {
+      "title": "Non-Euclidean Kime Manifold",
+      "content": "So far, we considered spacekime as 5D Euclidean space where the 2D kime is a flat space. Does it make sense to generalize kime to a non-Euclidean manifold and what is the rationale and meaning of a curved kime manifold?\n\nWe saw earlier the geometric representation of the flat spacekime using conical shapes. Let's start with some visualization of the non-Euclidean 2D kime manifold representing the axial (transverse) planes, and the spatial dimensions are compressed into the 1D vertical axis.\n\n\n<!--html_preserve-->\n<div>\n    \t<footer><center>\n\t\t\t<a href=\"http://www.socr.umich.edu/\">SOCR Resource</a>\n\t\t\t\tVisitor number <img class=\"statcounter\" src=\"https://c.statcounter.com/5714596/0/038e9ac4/0/\" alt=\"Web Analytics\" align=\"middle\" border=\"0\">\n\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar d = new Date();\n\t\t\t\t\tdocument.write(\" | \" + d.getFullYear() + \" | \");\n\t\t\t\t</script> \n\t\t\t\t<a href=\"http://socr.umich.edu/img/SOCR_Email.png\"><img alt=\"SOCR Email\"\n\t \t\t\ttitle=\"SOCR Email\" src=\"http://socr.umich.edu/img/SOCR_Email.png\"\n\t \t\t\tstyle=\"border: 0px solid ;\"></a>\n\t \t\t </center>\n\t \t</footer>\n\n\t<!-- Start of StatCounter Code -->\n\t\t<script type=\"text/javascript\">\n\t\t\tvar sc_project=5714596; \n\t\t\tvar sc_invisible=1; \n\t\t\tvar sc_partition=71; \n\t\t\tvar sc_click_stat=1; \n\t\t\tvar sc_security=\"038e9ac4\"; \n\t\t</script>\n\t\t\n\t\t<script type=\"text/javascript\" src=\"https://www.statcounter.com/counter/counter.js\"></script>\n\t<!-- End of StatCounter Code -->\n\t\n\t<!-- GoogleAnalytics -->\n\t\t<script src=\"https://www.google-analytics.com/urchin.js\" type=\"text/javascript\"> </script>\n\t\t<script type=\"text/javascript\"> _uacct = \"UA-676559-1\"; urchinTracker(); </script>\n\t<!-- End of GoogleAnalytics Code -->\n</div>\n<!--/html_preserve-->",
+      "word_count": 175
+    }
+  ],
+  "tables": [
+    {
+      "section": "Main",
+      "content": "    code_folding: hide\n---",
+      "row_count": 2
+    }
+  ],
+  "r_code": [
+    {
+      "section": "Main",
+      "code": "knitr::opts_chunk$set(echo = TRUE)",
+      "line_count": 1
+    },
+    {
+      "section": "Non-Euclidean Kime Manifold",
+      "code": "library(plotly)\nlibrary(ggplot2)\n\n# Define a vase-generating function (2D), which will be rotated to form curved kime manifold\nkime.manifold <- data.frame( s=seq(0, 1.3, length.out = 200) )\nkime.manifold$theta <- seq(0, 2*pi, length.out = 200)\ng <- function (t) { sqrt(t^3-2.09*t^2+1.097*t) }\nh <- function (t) { t }\n\n# rendering (u==s, v==theta) parametric surfaces requires x,y,z arguments to be 2D arrays\n# In out case, the three coordinates have to be 200*200 parameterized tensors/arrays\nx2 <- g(kime.manifold$s) %o% cos(kime.manifold$theta)\ny2 <- g(kime.manifold$s) %o% sin(kime.manifold$theta)\nz2 <- h(kime.manifold$s) %o% rep(1, 200)\n#2D plot data\nxx2 <- g(kime.manifold$s) %o% cos(kime.manifold$theta)\nyy2 <- rep(0,200*200)\nzz2 <- h(kime.manifold$s) %o% rep(1, 200)\n\n# calculate the diameter of every circle\nxxx2<-as.vector(xx2)\nzzz2<-as.vector(zz2)\nnewdata<-data.frame(zzz2,xxx2)\nzzzz2<-as.matrix(zzz2)\n\n#calculate every diameter\na=vector()\nfor(i in 1:200){\n  t=max(newdata[which(zzz2==zzzz2[i,]),2])\n  a=c(a,t)\n}\n#text the diameter and height of every circle\n\n# phases\nphi <- matrix(NA, nrow=200, ncol=200)\nfor (i in 1:200) {\n  for (j in 1:200) phi[i,j] <- kime.manifold$theta[j]\n}\n\nmytext <- cbind(radius=a, height=zzz2[1:200], phi=phi[ ,1:200]); # tail(mytext)\ncustom_txt <- matrix(NA, nrow=200, ncol=200)\nfor (i in 1:200) {\n   for (j in 1:200) {\n     custom_txt[i,j] <- paste(' x: ', round(mytext[i, 2], 3),\n                    '\\n r: ', round(mytext[i, 1], 3),\n                    '\\n phi: ', round(kime.manifold$theta[j], 3)) \n   }\n}\n\n# Define kime-curve parameter\nxCurve <- g(kime.manifold$s) * cos(kime.manifold$theta) \nyCurve <- g(kime.manifold$s) * sin(kime.manifold$theta)\nzCurve <- h(kime.manifold$s) \n\nkimeCurve <- data.frame(xCurve, yCurve, zCurve)\n\n#plot 2D into 3D and make the text of the diameter (time), height (r), and phase (phi)\nf <- list(family = \"Courier New, monospace\", size = 18, color = \"black\")\nx <- list(title = \"k1\", titlefont = f)\ny <- list(title = \"k2\", titlefont = f)\nz <- list(title = \"space (x)\", titlefont = f)\n\nplot_ly(kimeCurve, x = ~xCurve, y = ~yCurve, z = ~zCurve, type = 'scatter3d', \n             mode = 'lines', showlegend = F, # name=\"Kime-space curve projection on Kime-surface\",\n             line = list(width = 22), name=\"SK curve\") %>%\n  add_trace(x = ~xx2, y = ~yy2, z = ~zz2, type = \"surface\", name=\"Spacekime leaf\",\n        text = custom_txt, hoverinfo = \"text\", showlegend = FALSE) %>% \n  add_trace(x=~x2, y=~y2, z=~z2, name=\"SK manifold\",\n                  colors = c(\"blue\", \"yellow\"),type=\"surface\", \n                  opacity=0.5, showscale = FALSE, showlegend = FALSE) %>%\n        # trace the main Z-axis\n  add_trace(x=0, y=0, z=~zz2[, 1], type=\"scatter3d\", mode=\"lines\", \n                  line = list(width = 10, color=\"navy blue\"), name=\"Space(x)\", \n                  hoverinfo=\"none\", showlegend = FALSE) %>%\n  layout(dragmode = \"turntable\", title = \"Non-Euclidean Kime Manifold (1D space, 2D kime)\",\n               scene = list(xaxis = x, yaxis = y, zaxis = z), showlegend = FALSE)",
+      "line_count": 76
+    }
+  ]
+}

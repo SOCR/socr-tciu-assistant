@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "created_at": "2025-05-15T17:01:01.282438",
+    "total_sections": 5,
+    "total_code_chunks": 6,
+    "total_tables": 1,
+    "r_libraries": [
+      "arm",
+      "dplyr",
+      "fastDummies",
+      "forecast",
+      "ggplot2",
+      "ggrepel",
+      "plot3D",
+      "plotly",
+      "scatterplot3d",
+      "tidyr"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Main",
+      "content": "---\ntitle: \"Spacekime Analytics (Time Complexity and Inferential Uncertainty)\"\nsubtitle: \"EU Country Economic Indicators - 3D Longitudinal Tracker\"\nauthor: 'SOCR Team '\ndate: \"`r format(Sys.time(),'%m/%d/%Y')`\"\noutput:\n  html_document:\n    theme: spacelab\n    highlight: tango\n    includes:\n      before_body: TCIU_header.html\n    toc: yes\n    number_sections: yes\n    toc_depth: 2\n    toc_float:\n      collapsed: no\n      smooth_scroll: yes\n    code_folding: hide\n  word_document:\n    toc: yes\n    toc_depth: '2'\n  pdf_document:\n    toc: yes\n    toc_depth: '2'",
+      "word_count": 57
+    },
+    {
+      "title": "Data Preprocessing",
+      "content": "Loading all required packages.\n\n\nLoad and and preprocess the EU Economic data.",
+      "word_count": 12
+    },
+    {
+      "title": "Reformat the data into a 3D array (country $\\times$ feature $\\times$ time)",
+      "content": "",
+      "word_count": 0
+    },
+    {
+      "title": "3D Data visualization",
+      "content": "",
+      "word_count": 0
+    },
+    {
+      "title": "Time series format",
+      "content": "Remove duplicates.\n\n\nAdditional details, examples, modeling strategies for interpreting the EU Economics data are available in [TCIU Chapter 6 (Applications)](https://tciu.predictive.space/).\n\n<!--html_preserve-->\n<div>\n    \t<footer><center>\n\t\t\t<a href=\"https://www.socr.umich.edu/\">SOCR Resource</a>\n\t\t\t\tVisitor number <img class=\"statcounter\" src=\"https://c.statcounter.com/5714596/0/038e9ac4/0/\" alt=\"Web Analytics\" align=\"middle\" border=\"0\">\n\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar d = new Date();\n\t\t\t\t\tdocument.write(\" | \" + d.getFullYear() + \" | \");\n\t\t\t\t</script> \n\t\t\t\t<a href=\"https://socr.umich.edu/img/SOCR_Email.png\"><img alt=\"SOCR Email\"\n\t \t\t\ttitle=\"SOCR Email\" src=\"https://socr.umich.edu/img/SOCR_Email.png\"\n\t \t\t\tstyle=\"border: 0px solid ;\"></a>\n\t \t\t </center>\n\t \t</footer>\n\n\t<!-- Start of StatCounter Code -->\n\t\t<script type=\"text/javascript\">\n\t\t\tvar sc_project=5714596; \n\t\t\tvar sc_invisible=1; \n\t\t\tvar sc_partition=71; \n\t\t\tvar sc_click_stat=1; \n\t\t\tvar sc_security=\"038e9ac4\"; \n\t\t</script>\n\t\t\n\t\t<script type=\"text/javascript\" src=\"https://www.statcounter.com/counter/counter.js\"></script>\n\t<!-- End of StatCounter Code -->\n\t\n\t<!-- GoogleAnalytics -->\n\t\t<script src=\"https://www.google-analytics.com/urchin.js\" type=\"text/javascript\"> </script>\n\t\t<script type=\"text/javascript\"> _uacct = \"UA-676559-1\"; urchinTracker(); </script>\n\t<!-- End of GoogleAnalytics Code -->\n</div>\n<!--/html_preserve-->",
+      "word_count": 115
+    }
+  ],
+  "tables": [
+    {
+      "section": "Main",
+      "content": "always_allow_html: yes\n---",
+      "row_count": 2
+    }
+  ],
+  "r_code": [
+    {
+      "section": "Data Preprocessing",
+      "code": "library(dplyr)\nlibrary(arm)\nlibrary(tidyr)\nlibrary(ggplot2)\nlibrary(ggrepel)\nlibrary(plot3D)\nlibrary(scatterplot3d)\nlibrary(plotly)\nlibrary(fastDummies)\nlibrary(forecast)\n\nsetwd(\"C:/Users/dinov/Desktop/Ivo.dir/Eclipse_Projects/HTML5_WebSite/TCIU/Chapter6/\")\n\n# Load Previously Computed Workspace:\nload(\"C:/Users/dinov/Desktop/Ivo.dir/Eclipse_Projects/HTML5_WebSite/TCIU/Chapter6/EuEco_Yuming.RData\")",
+      "line_count": 15
+    },
+    {
+      "section": "Data Preprocessing",
+      "code": "eu <- read.csv(\"Master_Aggregate_EU_Econ_Data_11_29_2018_TimeTransform.csv\", stringsAsFactors = F)[,-5]\ncolnames(eu) <- c(\"country\",\"time\",\"feature\",\"value\")\neu <- filter(eu,!country %in% c(\"European Union (25 countries)\",\"D1_Country\",\"\"))\neu$value <- sapply(c(1:nrow(eu)),function(x) as.numeric(gsub(\":|,\",\"\",eu$value[x])))\neu <- filter(eu, feature != \"\")\ndim(eu)",
+      "line_count": 6
+    },
+    {
+      "section": "Reformat the data into a 3D array (country $\\times$ feature $\\times$ time)",
+      "code": "unq_country <- sort(unique(eu$country))\nunq_time <- sort(unique(eu$time))\nunq_fea <- sort(unique(eu$feature))\nnum_country <- length(unq_country)\nnum_time <- length(unq_time)\nnum_fea <- length(unq_fea)\neu <- arrange(eu,country,time,feature)\neu_3d_array <- array(NA,dim = c(num_country,num_time,num_fea),dimnames = list(unq_country,unq_time,unq_fea))\nfor (i in 1:num_country){\n  for (j in 1:num_time){\n    for (k in 1:num_fea){\n      eu_3d_array[i,j,k] = eu$value[(i-1)*num_time*num_fea + (j-1)*num_fea + k]\n    }\n  }\n}\neu_3d_array[1:10,1:10,1]",
+      "line_count": 16
+    },
+    {
+      "section": "3D Data visualization",
+      "code": "eu <- arrange(eu,time,feature,country)\n# eu_visualization <- select(eu,time,feature,country,value)\neu_visualization$time <- sapply(c(1:nrow(eu_visualization)),function(x) as.numeric(gsub(\"Q\",\".\",eu_visualization$time[x])))\neu_visualization$feature <- as.factor(eu_visualization$feature)\neu_visualization$country <- as.factor(eu_visualization$country)\neu_visualization$value <- as.numeric(eu_visualization$value)\neu_visualization$feature <- sapply(c(1:nrow(eu_visualization)),function(x) substr(eu_visualization$feature[x],1,20))\n\nplot_ly(eu_visualization, x = ~time, y = ~country, z = ~value, color = ~feature,split = ~ country,type = 'scatter3d', mode = 'lines')",
+      "line_count": 9
+    },
+    {
+      "section": "Time series format",
+      "code": "#Find the duplicates\neu_time_series <- na.omit(eu)\nallFeatures = as.character(unique(eu_time_series$feature))\nallTime = unique(eu_time_series$time)\nallCountry = as.character(unique(eu_time_series$country))\nallCombination = length(allFeatures)*length(allTime)*length(allCountry)\ndup = c()\nfor (i in 1:length(allFeatures)){\n  for (j in 1:length(allCountry)){\n    for (k in 1:length(allTime)){\n      if (nrow(filter(eu_time_series,country == allCountry[j] & \n                      feature == allFeatures[i] & time == allTime[k]))>1){\n        dup = c(dup,as.character(allFeatures[i]))\n        break\n      }\n    }\n    break\n  }\n}\ndup # These features have mutiple observations at the same time point",
+      "line_count": 20
+    },
+    {
+      "section": "Time series format",
+      "code": "removeDup = filter(eu_time_series, feature != \"Employment by sex, age and educational attainment level, Total, From 15 to 64 years, All ISCED 2011 levels\" &\n                     feature != \"Labor cost for LCI excluding bonuses\" &\n                     feature != \"Labor costs other than wages or salaries\" &\n                     feature != \"Labour cost for LCI (compensation of employees plus taxes minus subsidies)\" &\n                     feature != \"Labour cost for LCI excluding bonuses\" &\n                     feature != \"Labour costs other than wages and salaries\" &\n                     feature != \"Wages and salaries (total)\")\ntime_series = spread(removeDup,feature,value)\ndim(time_series)",
+      "line_count": 9
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "created_at": "2025-05-15T17:01:01.128551",
+    "total_sections": 3,
+    "total_code_chunks": 1,
+    "total_tables": 1,
+    "r_libraries": []
+  },
+  "sections": [
+    {
+      "title": "Main",
+      "content": "---\ntitle: \"Spacekime Analytics (Time Complexity and Inferential Uncertainty)\"\nsubtitle: \"Coordinate Transformations, Covariance, Contravariance, and Invariance\"\nauthor: \"SOCR Team (Ivo Dinov)\"\ndate: \"`r format(Sys.time(),'%m/%d/%Y')`\"\noutput: \n  html_document:\n    theme: spacelab\n    highlight: tango\n    includes:\n      before_body: TCIU_header.html\n    toc: true\n    number_sections: true\n    toc_depth: 2\n    toc_float:\n      collapsed: false\n      smooth_scroll: true",
+      "word_count": 44
+    },
+    {
+      "title": "Coordinate Transformations",
+      "content": "Given complex vector space $V$, the set of all linear functions $L:V\\to \\mathbb{C}$ forms the dual space to $V$, which is also a vector space denoted by $V^*$. When $V$ is finite dimensional, $V^*$ has the same dimension as $V$. The pairing of vector spaces to their duals requires disambiguation of elements in $V$, called *contravariant vectors or kets*, and operatorsin $V^*$, called *dual vectors, covectors, covariant vectors, or bras*.\n\n*Covariant components* transform synergistically (“co”) in the same way as the basis vectors, whereas *contravariant components* transform anti-synergistically (“contra”) in the opposite way to basis vectors. *Transformation of basis vectors* refers to mapping of the basis vectors in the original coordinate system into new basis vectors. *Transformation of vector components* refers to the change in the vector components (coefficients) relative to two different sets of coordinate axes.\n\n$$\\underbrace{(New\\ basis\\ vectors,\\ ν')=(Transform\\ matrix,\\ T)\\times \n(Original\\ basis\\ vectors,\\ ν)}_{base\\ vectors\\ covary}\\ ,$$\n\n$$\\underbrace{(Vector\\ components\\ in\\ the\\ new\\ coordinate\\ system,\\ u_{ν'})=\\\\\n(Inverse\\ Transpose\\ Transform\\ matrix,\\ (T^t)^{-1})\\times \n(vector\\ components\\ in\\ the\\ original\\ coordinate\\ system,\\ u_ν}_{base\\ vectors\\ covary}\\ ,$$\n\nDenote the new basis vector $v' = \\begin{pmatrix} v_{1}' \\\\ v_{2}' \\end{pmatrix}$, and the original basis vectors $v = \\begin{pmatrix} v_{1} \\\\ v_{2} \\end{pmatrix}$.\nDenote the vector components in the new coordinate system $u_{v^\\prime} = \\begin{pmatrix} u^{1\\prime} \\\\ u^{2\\prime} \\end{pmatrix}$, and the vector in the old coordinate system $u_v = \\begin{pmatrix} u^{1} \\\\ u^{2} \\end{pmatrix}$.\n\nAny given (fixed) vector $\\alpha\\in \\mathbb{R}^2$ would have unique representations \nin either the new ($v'$) or the old ($v$) coordinate systems\n\n$$\\alpha \\equiv  \\left \\langle \\begin{pmatrix} u^{1\\prime}\\\\u^{2\\prime} \\end{pmatrix} | \\begin{pmatrix} v_{1}^\\prime \\\\ v_{2}^\\prime \\end{pmatrix} \\right \\rangle\n= \\underbrace{\\begin{pmatrix} u^{1\\prime} & u^{2\\prime} \\end{pmatrix}}_{new\\ components}\n\\begin{pmatrix} v_{1}^\\prime \\\\ v_{2}^\\prime \\end{pmatrix} \\equiv\n\\begin{pmatrix} u^{1} & u^{2} \\end{pmatrix}\n\\underbrace{\\begin{pmatrix} v_{1} \\\\ v_{2} \\end{pmatrix}}_{old\\ basis}\\ .$$\n\nThen, there exists a *linear mapping* $T$ transforming the old basis into the new\nbasis, $T:v\\to v'$,\n$$\\underbrace{\\begin{pmatrix} v_1' \\\\ v_2' \\end{pmatrix}}_{v'} = T\n\\underbrace{\\begin{pmatrix} v_1 \\\\ v_2 \\end{pmatrix}}_{v}\\ .$$\n\n$$\\alpha = \\left \\langle \\begin{pmatrix} u^{1\\prime}\\\\u^{2\\prime} \\end{pmatrix} | \\begin{pmatrix} v_{1}^\\prime \\\\ v_{2}^\\prime \\end{pmatrix} \\right \\rangle = \n\\left \\langle\\begin{pmatrix} u^{1\\prime}\\\\u^{2\\prime} \\end{pmatrix} |\\  T \\begin{pmatrix} v_{1} \\\\ v_{2} \\end{pmatrix}\\right \\rangle = \n\\left \\langle T^t \\begin{pmatrix} u^{1\\prime}\\\\u^{2\\prime} \\end{pmatrix} | \\begin{pmatrix} v_{1} \\\\ v_{2} \\end{pmatrix}\\right \\rangle = \n\\left \\langle\\begin{pmatrix} u^{1}\\\\u^{2} \\end{pmatrix} | \\begin{pmatrix} v_{1} \\\\ v_{2} \\end{pmatrix}\\right \\rangle\\ .$$\n\nDue to the uniqueness of the coordinate components, $u_{v} = \\begin{pmatrix} u^{1} \\\\ u^{2} \\end{pmatrix}$ and $u_{v^\\prime} = \\begin{pmatrix} u^{1\\prime} \\\\ u^{2\\prime} \\end{pmatrix}$,\n\n$$\\underbrace{\\begin{pmatrix} u^{1}\\\\u^{2} \\end{pmatrix}}_{u_{v}} = T^t\n\\underbrace{\\begin{pmatrix} u^{1\\prime}\\\\u^{2\\prime} \\end{pmatrix}}_{u_{v'}}\\ .$$\n\nThe transposed basis transformation matrix\n$$T^t = \\begin{bmatrix} T_{1}^{1} & T_{2}^{1} \\\\ T_{1}^{2} & T_{2}^{2} \n\\end{bmatrix}$$\nmay be used to map the coefficient *components* of the vector $\\alpha = u^1v_1 + u^2v_2$ from the old coordinate system, $v$, to components in the new basis, $v^\\prime$:\n\n$$u_v = T^tu_{v\\prime}\\ \\   \\Longleftrightarrow \\ \\ u_{v^\\prime} = \\left(T^t\\right)^{-1}u_v\\ .$$",
+      "word_count": 463
+    },
+    {
+      "title": "Example",
+      "content": "Here is one example of a change of basis transformation\n$$\\left| \\begin{array}{cc} \nv_1' = v_1 + 2 v_2 \\\\ v_2' = v_1 + 3 v_2  \\end{array} \\right.\\ .$$\n\n$$T\\equiv \\begin{pmatrix} T_1^1 & T_1^2 \\\\  T_2^1 & T_2^2 \\end{pmatrix}=\n\\begin{pmatrix} 1 & 2 \\\\  1 & 3 \\end{pmatrix}\\ , \\ \\ \nT^{-1} = \\begin{pmatrix} 3 & -2 \\\\  -1 & 1 \\end{pmatrix}\\ ,$$\n\n$$T^t\\equiv \\begin{pmatrix} T_1^1 & T_2^1 \\\\  T_1^2 & T_2^2 \\end{pmatrix}=\n\\begin{pmatrix} 1 & 1 \\\\  2 & 3 \\end{pmatrix}\\ , \\ \\ \n(T^t)^{-1} = \\begin{pmatrix} 3 & -1 \\\\  -2 & 1 \\end{pmatrix}\\ ,$$\n\n$$ν'=Tν\\ \\  , \\ \\  v=T^{-1}v' \\ .$$\n\nSuppose the vector $u_ν=u^1 ν_1+u^2 ν_2$ in the old system and in the new \ncoordinate system, $u_{ν'} = u_{ν'}^1 ν_1' + u_{ν'}^2 ν_2'$. then,\n\n$$u_ν=u^1 ν_1+u^2 ν_2 = \\left\\langle \\begin{pmatrix} u^1 \\\\ u^2 \\end{pmatrix} |\n\\begin{pmatrix} v_1 \\\\ v_2 \\end{pmatrix} \\right\\rangle= \nu^1 (3ν_1' - 2ν_2') + u^2 (-ν_1' + ν_2')=\\cdots =\\\\ \n\\underbrace{(3u^1-u^2)}_{u_{ν'}^1} ν_1' + \n\\underbrace{(-2u^1 + u^2)}_{u_{ν'}^2} v_2' = u_{ν'}\\ .$$ \n\n\n\n<!--html_preserve-->\n<div>\n    \t<footer><center>\n\t\t\t<a href=\"https://www.socr.umich.edu/\">SOCR Resource</a>\n\t\t\t\tVisitor number <img class=\"statcounter\" src=\"https://c.statcounter.com/5714596/0/038e9ac4/0/\" alt=\"Web Analytics\" align=\"middle\" border=\"0\">\n\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar d = new Date();\n\t\t\t\t\tdocument.write(\" | \" + d.getFullYear() + \" | \");\n\t\t\t\t</script> \n\t\t\t\t<a href=\"https://socr.umich.edu/img/SOCR_Email.png\"><img alt=\"SOCR Email\"\n\t \t\t\ttitle=\"SOCR Email\" src=\"https://socr.umich.edu/img/SOCR_Email.png\"\n\t \t\t\tstyle=\"border: 0px solid ;\"></a>\n\t \t\t </center>\n\t \t</footer>\n\n\t<!-- Start of StatCounter Code -->\n\t\t<script type=\"text/javascript\">\n\t\t\tvar sc_project=5714596; \n\t\t\tvar sc_invisible=1; \n\t\t\tvar sc_partition=71; \n\t\t\tvar sc_click_stat=1; \n\t\t\tvar sc_security=\"038e9ac4\"; \n\t\t</script>\n\t\t\n\t\t<script type=\"text/javascript\" src=\"https://www.statcounter.com/counter/counter.js\"></script>\n\t<!-- End of StatCounter Code -->\n\t\n\t<!-- GoogleAnalytics -->\n\t\t<script src=\"https://www.google-analytics.com/urchin.js\" type=\"text/javascript\"> </script>\n\t\t<script type=\"text/javascript\"> _uacct = \"UA-676559-1\"; urchinTracker(); </script>\n\t<!-- End of GoogleAnalytics Code -->\n</div>\n<!--/html_preserve-->",
+      "word_count": 260
+    }
+  ],
+  "tables": [
+    {
+      "section": "Main",
+      "content": "    code_folding: hide\n---",
+      "row_count": 2
+    }
+  ],
+  "r_code": [
+    {
+      "section": "Main",
+      "code": "knitr::opts_chunk$set(echo = TRUE, warings = FALSE, error = TRUE)",
+      "line_count": 1
+    }
+  ]
+}

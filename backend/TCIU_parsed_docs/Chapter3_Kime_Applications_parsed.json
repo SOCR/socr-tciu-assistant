@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "created_at": "2025-05-15T17:01:01.148556",
+    "total_sections": 2,
+    "total_code_chunks": 7,
+    "total_tables": 1,
+    "r_libraries": [
+      "DT",
+      "abind",
+      "manipulateWidget",
+      "misc3d",
+      "rgl"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Main",
+      "content": "---\ntitle: \"Kime Applications in Data Science\"\nsubtitle: \"[Back To TCIU Contents](https://tciu.predictive.space/)\"\nauthor: \"SOCR Team \"\ndate: \"`r format(Sys.time(),'%m/%d/%Y')`\"\noutput: \n  html_document:\n    theme: spacelab\n    highlight: tango\n    includes:\n      before_body: TCIU_header.html\n    toc: true\n    number_sections: true\n    toc_depth: 2\n    toc_float:\n      collapsed: false\n      smooth_scroll: true",
+      "word_count": 39
+    },
+    {
+      "title": "Econometrics, Business and Market Analysis Example(s)",
+      "content": "## Data Source Type\n\n### X1\n\n### img1\n\n\n## Figure 3.18A\n\n\n## Figure 3.18B\n\n\nRunning the above chunk may require a substantial amount of memory, the chunk below is a sub-sample of X1_phase_nill used to display a similar cuboid:\n\n\n\n\n<!--html_preserve-->\n<div>\n    \t<footer><center>\n\t\t\t<a href=\"https://www.socr.umich.edu/\">SOCR Resource</a>\n\t\t\t\tVisitor number <img class=\"statcounter\" src=\"https://c.statcounter.com/5714596/0/038e9ac4/0/\" alt=\"Web Analytics\" align=\"middle\" border=\"0\">\n\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar d = new Date();\n\t\t\t\t\tdocument.write(\" | \" + d.getFullYear() + \" | \");\n\t\t\t\t</script> \n\t\t\t\t<a href=\"https://socr.umich.edu/img/SOCR_Email.png\"><img alt=\"SOCR Email\"\n\t \t\t\ttitle=\"SOCR Email\" src=\"https://socr.umich.edu/img/SOCR_Email.png\"\n\t \t\t\tstyle=\"border: 0px solid ;\"></a>\n\t \t\t </center>\n\t \t</footer>\n\n\t<!-- Start of StatCounter Code -->\n\t\t<script type=\"text/javascript\">\n\t\t\tvar sc_project=5714596; \n\t\t\tvar sc_invisible=1; \n\t\t\tvar sc_partition=71; \n\t\t\tvar sc_click_stat=1; \n\t\t\tvar sc_security=\"038e9ac4\"; \n\t\t</script>\n\t\t\n\t\t<script type=\"text/javascript\" src=\"https://www.statcounter.com/counter/counter.js\"></script>\n\t<!-- End of StatCounter Code -->\n\t\n\t<!-- GoogleAnalytics -->\n\t\t<script src=\"https://www.google-analytics.com/urchin.js\" type=\"text/javascript\"> </script>\n\t\t<script type=\"text/javascript\"> _uacct = \"UA-676559-1\"; urchinTracker(); </script>\n\t<!-- End of GoogleAnalytics Code -->\n</div>\n<!--/html_preserve-->",
+      "word_count": 134
+    }
+  ],
+  "tables": [
+    {
+      "section": "Main",
+      "content": "    code_folding: hide\n---",
+      "row_count": 2
+    }
+  ],
+  "r_code": [
+    {
+      "section": "Main",
+      "code": "knitr::opts_chunk$set(echo = TRUE, warings = FALSE)",
+      "line_count": 1
+    },
+    {
+      "section": "Econometrics, Business and Market Analysis Example(s)",
+      "code": "# To Render the rgl/contour3d window in the DOCX/HTML output via knitter, we can use the following protocol:\nlibrary(misc3d)\nlibrary(rgl)\nlibrary(DT)\nload(\"Application.Rdata\")\n# dim(X1)\n# dim(img1)",
+      "line_count": 7
+    },
+    {
+      "section": "Econometrics, Business and Market Analysis Example(s)",
+      "code": "# 1. download the 4D fMRI data\nfMRIURL <- \"https://socr.umich.edu/HTML5/BrainViewer/data/fMRI_FilteredData_4D.nii.gz\"\nfMRIFile <- file.path(tempdir(), \"fMRI_FilteredData_4D.nii.gz\")\n(fMRIVolume <- readNIfTI(fMRIFile, reorient=FALSE))\n\n# 2. extract the time-course of 2D mid-axial slice (3D) hypervolume\nfMRI_2D_z11 <- fMRIVolume[ , , 11, ]\nX1 = fft(fMRI_2D_z11)",
+      "line_count": 8
+    },
+    {
+      "section": "Econometrics, Business and Market Analysis Example(s)",
+      "code": "planes_half <- ceiling(dim(fMRI_2D_z11)[3]/2)\n# apply log transform to temper the intensity range\nfftshift <- function(img_ff, dim = -1) {\n\n  rows <- dim(img_ff)[1]    \n  cols <- dim(img_ff)[2]\n  # planes <- dim(img_ff)[3]\n\n  swap_up_down <- function(img_ff) {\n    rows_half <- ceiling(rows/2)\n    return(rbind(img_ff[((rows_half+1):rows), (1:cols)], img_ff[(1:rows_half), (1:cols)]))\n  }\n\n  swap_left_right <- function(img_ff) {\n    cols_half <- ceiling(cols/2)\n    return(cbind(img_ff[1:rows, ((cols_half+1):cols)], img_ff[1:rows, 1:cols_half]))\n  }\n  \n  #swap_side2side <- function(img_ff) {\n  #  planes_half <- ceiling(planes/2)\n  #  return(cbind(img_ff[1:rows, 1:cols, ((planes_half+1):planes)], img_ff[1:rows, 1:cols, 1:planes_half]))\n  #}\n\n  if (dim == -1) {\n    img_ff <- swap_up_down(img_ff)\n    return(swap_left_right(img_ff))\n  }\n  else if (dim == 1) {\n    return(swap_up_down(img_ff))\n  }\n  else if (dim == 2) {\n    return(swap_left_right(img_ff))\n  }\n  else if (dim == 3) {\n    # Use the `abind` package to bind along any dimension a pair of multi-dimensional arrays\n    # install.packages(\"abind\")\n    library(abind)\n    \n    planes <- dim(img_ff)[3]\n    rows_half <- ceiling(rows/2)\n    cols_half <- ceiling(cols/2)\n    planes_half <- ceiling(planes/2)\n    \n    img_ff <- abind(img_ff[((rows_half+1):rows), (1:cols), (1:planes)], \n                    img_ff[(1:rows_half), (1:cols), (1:planes)], along=1)\n    img_ff <- abind(img_ff[1:rows, ((cols_half+1):cols), (1:planes)], \n                    img_ff[1:rows, 1:cols_half, (1:planes)], along=2)\n    img_ff <- abind(img_ff[1:rows, 1:cols, ((planes_half+1):planes)], \n                    img_ff[1:rows, 1:cols, 1:planes_half], along=3)\n    return(img_ff)\n  }\n  else {\n    stop(\"Invalid dimension parameter\")\n  }\n}\nimg1 <- fftshift(Re(log(1+X1)),3)[ , , (1:(planes_half+1))]",
+      "line_count": 56
+    },
+    {
+      "section": "Econometrics, Business and Market Analysis Example(s)",
+      "code": "# Opening rgl window to display in html page\ninvisible(open3d(useNULL = T, windowRect = c(0,0,800,800), zoom = 1))\ndisplay1 <- \n  contour3d(img1, level = c(7, 12), alpha = c(0.3, 0.5), add = TRUE,\n            color=c(\"yellow\", \"red\"), perspective=T, distance=0.8)\n\n# Aspect ratio and axes\naspect3d(1.0, 1.0, 1.0)\naxes3d()\n\n# install.packages(\"manipulateWidget\")\nlibrary(manipulateWidget)\n# Display scene\nrglwidget(width = 800, height = 600, elementId = \"model1\") %>% \n  toggleWidget(ids = display1, label = \"Show\")",
+      "line_count": 15
+    },
+    {
+      "section": "Econometrics, Business and Market Analysis Example(s)",
+      "code": "# Show the Phases\n# Opening rgl window to display in html page\ninvisible(open3d(useNULL = T, windowRect = c(0,0,800,800), zoom = 1))\nX1_phase_nill <- atan2(0, Re(X1))\n\ndisplay1 <- \n  contour3d(X1_phase_nill, level = c(0, 2), \n            alpha = c(0.3, 0.5), add = TRUE, color=c(\"yellow\", \"red\"))\n\n# Aspect ratio and axes\naspect3d(1.0, 1.0, 1.0)\naxes3d()\n\n# Display scene\nrglwidget(width = 800, height = 600, elementId = \"model1\") %>% \n  toggleWidget(ids = display1, label = \"Show\")",
+      "line_count": 16
+    },
+    {
+      "section": "Econometrics, Business and Market Analysis Example(s)",
+      "code": "# Show the Phases\n# Opening rgl window to display in html page\ninvisible(open3d(useNULL = T, windowRect = c(0,0,800,800), zoom = 1))\nX1_phase_nill <- atan2(0, Re(X1))\n\nX1_phase_nill_subsample = \n  X1_phase_nill[\n    sample( length(X1_phase_nill[,1,1]), length(X1_phase_nill[,1,1])*0.5, replace = TRUE),\n    sample( length(X1_phase_nill[1,,1]), length(X1_phase_nill[1,,1])*0.5, replace = TRUE),\n    sample( length(X1_phase_nill[1,1,]), length(X1_phase_nill[1,1,])*0.5, replace = TRUE)]\n\ndisplay2 <- \n  contour3d(X1_phase_nill_subsample, level = c(0, 2), \n            alpha = c(0.3, 0.5), add = TRUE, color=c(\"yellow\", \"red\"))\n\n# Aspect ratio and axes\naspect3d(1.0, 1.0, 1.0)\naxes3d()\n\n# Display scene\nrglwidget(width = 800, height = 600, elementId = \"model2\") %>% \n  toggleWidget(ids = display2, label = \"Show\")",
+      "line_count": 22
+    }
+  ]
+}

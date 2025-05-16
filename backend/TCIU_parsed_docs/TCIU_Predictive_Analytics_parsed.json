@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "created_at": "2025-05-15T17:01:01.406681",
+    "total_sections": 8,
+    "total_code_chunks": 31,
+    "total_tables": 1,
+    "r_libraries": [
+      "AnalyzeFMRI",
+      "DT",
+      "R.matlab",
+      "TCIU",
+      "ggfortify"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Main",
+      "content": "---\ntitle: \"TCIU Predictive Analytics: \"\nsubtitle: \"Validation using 4D Complex (mag,phase) and Real (solely-mag reconstruction) fMRI data\"\nauthor: \"SOCR Team\"\ndate: \"`r format(Sys.time(),'%m/%d/%Y')`\"\noutput: \n  html_document:\n    theme: spacelab\n    highlight: tango\n    includes:\n      before_body: TCIU_header.html\n    toc: true\n    number_sections: true\n    toc_depth: 2\n    toc_float:\n      collapsed: false\n      smooth_scroll: true",
+      "word_count": 44
+    },
+    {
+      "title": "Package Loading and Data Manipulation",
+      "content": "",
+      "word_count": 0
+    },
+    {
+      "title": "Time-series graphs",
+      "content": "## Interactive time-series visualization\n\nThe function `fmri_time_series` is used to create four interactive time series graphs for the real, imaginary, magnitude, and phase parts for the fMRI spacetime data. We can also add a reference plotly object to the plot. This function is based on `GTSplot` function from package `TSplotly`.\n\n\n### Example: X: 44, Y: 42, Z: 33",
+      "word_count": 58
+    },
+    {
+      "title": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "content": "This Rmd notebook uses a time-series simulation to illustrate how to transform the fMRI data at a fixed voxel location into a kime-surface (kime-series).\n\nNotes:\n\nValidate all steps in this transformation protocol and finalize this 3D visualization.\n\nTry it with real fMRI data at brain voxel locations associated with the finger-tapping task.\n\n## Pseudo-code\n+ Randomly generate 8 $phi=\\phi$ kime-phases for each of the 10 time radii. This yields an $8\\times 10$ array (*phi_8_vec*) of kime phase directions. These directions can be obtained by different strategies, e.g., (1) uniform or Laplace distribution sampling over the interval $[-\\pi:\\pi)$, (2) randomly sampling with/without replacement from known kime-phases obtained from similar processes, etc.\n+ Optionally, order all kime-phases (rows) from small to large for each column.\n+ Fix the $\\nu=(x,y,z)$ voxel location and extract the fMRI time-course $fMRI_{\\nu}(t), \\forall 1\\leq t\\leq 160$.\n+ For binary stimuli (e.g., activation (ON) and rest (OFF) event-related design), we can split the 160-long fMRI series into 80 ON (Activation) and 80 OFF (rest) states, or sub-series.\n+ Construct a data-frame with 160 rows and 4 columns; time (1:10), phases (8), states (2), and fMRI_value (Complex or Real intensity).\n+ Convert the long DF representing fMRI_ON and fMRI_OFF from their native (old) polar coordinates to the (new) Cartesian coordinates, using polar transformations.\n+ Check for visual (graphical) and numeric differences between the fMRI intensities during the ON vs. OFF states\n+ Spatially smooth (blur) the matrices (in 2D) to reduce noise make them more representative of the process. May also need to temper the magnitude of the raw fMRI intensities, which can have large range.\n+ Generate the `plot_ly` *text labels* that will be shown on mouse hover (pop-up dialogues) over each kime-surface/kime-series. These text-labels are stored in Cartesian coordinates $(-10\\leq x\\leq 10,-10\\leq y\\leq 10)$, but are computed using the polar coordinates $(1\\leq t\\leq 10,-\\pi\\leq \\phi<\\pi)$ and the polar-to-Cartesian transformation. This the labels are $21\\times21$ arrays including the triple $(t, \\phi, fMRIvalue)$. Separate text-labels are generated for each kime-surface (ONN vs. OFF stimuli).\n+ Generate the $21\\times21$ kime-domain Cartesian grid by polar-transforming the polar coordinates $(t,\\phi)$ into Cartesian counterparts $(x,y)$.\n+ Interpolate the fMRI intensities (natively anchored at $(t,\\phi)$) to $fMRI(x,y), \\forall -11\\leq x,y \\leq 11, x^2+y^2\\leq 10$.\n+ Use `plot_ly` to display in 3D the kime-series as 2D manifolds (kime-surfaces) over the Cartesian domain.\n\n\n## Function main steps illustration: Kime-surfaces / kime-series construction\n\n### Generate the kime-phases\nRandomly generate 8 $phi=\\phi$ kime-phases for each of the 10 time radii. This yields an $8\\times 10$ array (*phi_8_vec*) of kime phase directions. These directions can be obtained by different strategies, e.g., (1) uniform or Laplace distribution sampling over the interval $[-\\pi:\\pi)$, (2) randomly sampling with/without replacement from known kime-phases obtained from similar processes, etc.\n\nOptionally, order all kime-phases (rows) from small to large for each column.\n\n\n\n### Split the fMRI series according to the event-related design\nFor binary stimuli (e.g., activation (ON) and rest (OFF) event-related design), we can split the 160-long fMRI series into 80 ON (Activation) and 80 OFF (rest) states, or sub-series.\n\n\n### Preprocess the matrices\nSpatially smooth (blur) the matrices (in 2D) to reduce noise make them more representative of the process. May also need to temper the magnitude of the raw fMRI intensities, which can have large range.\n\n\n### Generate `plotly` labels\nGenerate the `plot_ly` text labels that will be shown on mouse hover (pop-up dialogues) over each kime-surface/kime-series. These text-labels are stored in Cartesian coordinates $(-10\\leq x\\leq 10,-10\\leq y\\leq 10)$, but are computed using the polar coordinates $(1\\leq t\\leq 10,-\\pi\\leq \\phi<\\pi)$ and the polar-to-Cartesian transformation. This the labels are $21\\times21$ arrays including the triple $(t, \\phi, fMRIvalue)$. Separate text-labels are generated for each kime-surface (ONN vs. OFF stimuli).\n\n\n### Cartesian representation\nGenerate the $21\\times21$ kime-domain Cartesian grid by polar-transforming the polar coordinates $(t,\\phi)$ into Cartesian counterparts $(x,y)$.\n\n\n### Cartesian space interpolation\nInterpolate the fMRI intensities (natively anchored at $(t,\\phi)$) to $fMRI(x,y), \\forall -11\\leq x,y \\leq 11, x^2+y^2\\leq 10$.\n\n\n## Function result\n\nThe following parts are the main output of our functions\n\n### Generate a long data-frame\nConstruct a data-frame with 160 rows and 4 columns; time (1:10), phases (8), states (2), and fMRI_value (Complex or Real intensity). Then, convert the long DF representing fMRI_ON and fMRI_OFF from their native (old) polar coordinates to the (new) Cartesian coordinates, using polar transformations.\n\n\n### Display kime-surfaces\nUse `plot_ly` to display in 3D the kime-series as 2D manifolds (kime-surfaces) over the Cartesian domain.",
+      "word_count": 736
+    },
+    {
+      "title": "Interactive plotly Example",
+      "content": "## Plotly method: interactive way\n\nThe function `fmri_image` is used to create images for front view, side view, and top view of the fMRI image.\n\n\nManually examples:\n\nThe plot without mask restriction.\n\nThe plot with mask restriction.\n\n## Forcasting with time series\n\nThe function `fmri_ts_forecast` will fit the ARIMA model for each location. This function is based on `TSplot_gen` function from package `TSplotly`.",
+      "word_count": 63
+    },
+    {
+      "title": "Motor area detection",
+      "content": "## fMRI data simulation\n\nThe function `fmri_simulate_func` is used to simulate the real-valued fMRI data with the specified dimension.\n\n\n\n## Stimulus detection\n\nAn integrated function `fmri_stimulus_detect` which can apply multiple methods is used to detect motor area.\n\n\"t-test\" and \"wilcox-test\" can be applied to all real-valued fMRI data.\n\"HotellingsT2\",\"Wilk's Lambda\" and \"gLRT\" method can be applied to all complex-valued fMRI data.\n\"on_off_diff\" and \"HRF\" method can be applied to 4D real-valued fMRI data where the first method is calculating on-off difference period polar volume to get p-values and the second method is using hemodynamic response function and linear regression.\nThe post-hoc stat-mapping filtering can be also applied to the calculated p-values if specified in the parameter or use function `fmri_post_hoc` to do the process.\n\n\n### Examples",
+      "word_count": 126
+    },
+    {
+      "title": "Motor area visualization",
+      "content": "## Viusalization and comparison of p-value\n\n### 3D viusalization for p-value\n\n\n\n### 2D viusalization for p-value\n\nGenerate the 2D plot of the p-value from sagittal, coronal and axial view.\n\nPlot without hemodynamic contour.\n\n\nPlot with hemodynamic contour.\n\n\n## Comparison of performance of different methods on the same fMRI data\n\n### 3d p-value comparison\n`fmri_pval_comparison_3d` is to visualize two p-value data to see how they perform differently on detecting stimulated parts by 3D plot. Here we compare the difference of stimulated parts of two different fMRI data with the same mask, since our original fMRI is too big to use here for different statistical test.\n\n\n### 2d p-value comparison\n`fmri_pval_comparison_2d` is to visualize whatever number of p value (generated by different statistical tests on the same fMRI data) to see their difference by 2D plot. For simplicity here we only compare two different 3D array p value data.",
+      "word_count": 147
+    },
+    {
+      "title": "Three-phase ROI Analysis",
+      "content": "## Phase1: Detect Potential Activated ROI\n\n## Phase2: ROI-Based Tensor-on-Tensor Regression\n\n## Phase3: FDR Correction and Spatial Clustering\n                           \n## 3D visualization based on the activated areas by regions\n\n\n\n\n\n\n\n\n\n<!--html_preserve-->\n<div>\n    \t<footer><center>\n\t\t\t<a href=\"http://www.socr.umich.edu/\">SOCR Resource</a>\n\t\t\t\tVisitor number <img class=\"statcounter\" src=\"https://c.statcounter.com/5714596/0/038e9ac4/0/\" alt=\"Web Analytics\" align=\"middle\" border=\"0\">\n\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar d = new Date();\n\t\t\t\t\tdocument.write(\" | \" + d.getFullYear() + \" | \");\n\t\t\t\t</script> \n\t\t\t\t<a href=\"http://socr.umich.edu/img/SOCR_Email.png\"><img alt=\"SOCR Email\"\n\t \t\t\ttitle=\"SOCR Email\" src=\"http://socr.umich.edu/img/SOCR_Email.png\"\n\t \t\t\tstyle=\"border: 0px solid ;\"></a>\n\t \t\t </center>\n\t \t</footer>\n\n\t<!-- Start of StatCounter Code -->\n\t\t<script type=\"text/javascript\">\n\t\t\tvar sc_project=5714596; \n\t\t\tvar sc_invisible=1; \n\t\t\tvar sc_partition=71; \n\t\t\tvar sc_click_stat=1; \n\t\t\tvar sc_security=\"038e9ac4\"; \n\t\t</script>\n\t\t\n\t\t<script type=\"text/javascript\" src=\"https://www.statcounter.com/counter/counter.js\"></script>\n\t<!-- End of StatCounter Code -->\n\t\n\t<!-- GoogleAnalytics -->\n\t\t<script src=\"https://www.google-analytics.com/urchin.js\" type=\"text/javascript\"> </script>\n\t\t<script type=\"text/javascript\"> _uacct = \"UA-676559-1\"; urchinTracker(); </script>\n\t<!-- End of GoogleAnalytics Code -->\n</div>\n<!--/html_preserve-->",
+      "word_count": 123
+    }
+  ],
+  "tables": [
+    {
+      "section": "Main",
+      "content": "    code_folding: hide\n---",
+      "row_count": 2
+    }
+  ],
+  "r_code": [
+    {
+      "section": "Main",
+      "code": "knitr::opts_chunk$set(echo = TRUE,cache = FALSE, warning = FALSE)",
+      "line_count": 1
+    },
+    {
+      "section": "Package Loading and Data Manipulation",
+      "code": "library(TCIU)\nlibrary(DT)\nlibrary(R.matlab)\nlibrary(AnalyzeFMRI)\nlibrary(ggfortify)\nmat1 = readMat(\"subj1_run1_complex_all.mat\")\nbigim1 = mat1$bigim[,64:1,,]\nbigim1_mod = Mod(bigim1)\nsmoothmod = GaussSmoothArray(bigim1_mod,sigma = diag(3,3))\n# dim(bigim1) = 64 64 40\n# bigim1 contains the complex image space\n# dimensions are 64x*64y*40z*160t, corresponding to x,y,z,time\nload(\"mask.rda\") # load the 3D nifit data of the mask\nload(\"mask_label.rda\") # load the 3D nifit data of the mask with labels\nload(\"mask_dict.rda\") # load the label index and label name\nlabel_index = mask_dict$index\nlabel_name = as.character(mask_dict$name)\nlabel_mask = mask_label\nload(\"hemody.rda\") # load the hemodynamic contour of the brain",
+      "line_count": 19
+    },
+    {
+      "section": "Time-series graphs",
+      "code": "reference_plot = sample[[4]]\nfmri_time_series(bigim1, c(44,42,33), is.4d = TRUE, ref = reference_plot)",
+      "line_count": 2
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "# plot Laplacian\nggfortify::ggdistribution(extraDistr::dlaplace, seq(-pi, pi, 0.01), m=0, s=0.5)\n\n# randomly generate 8 phi kime-phases for each of the 10 time radii\nphi_8_vec <- matrix(NA, ncol=10, nrow = 8)\nfor (t in 1:10) { \n  # for a given t, generate 8 new phases\n  set.seed(t);\n  phi_8_vec[ ,t] <-\n    extraDistr::rlaplace(8,mu=0,sigma=0.5)\n  # rank-order the phases for consistency\n  # within the same foliation leaf\n  phi_8_vec[ ,t] <- sort(phi_8_vec[ ,t])\n  # force phases in [-pi: pi)\n  for (i in 1:8) {\n    if (phi_8_vec[i,t] < -pi) \n      phi_8_vec[i,t] <- -pi\n    if (phi_8_vec[i,t] >= pi) \n      phi_8_vec[i,t] <- pi\n  }\n}\n# order all kime-phases (rows) from small to large for each column\n# phi_8_vec_ordered <- apply(phi_8_vec, 2, sort)",
+      "line_count": 23
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "fMRI_ON<-bigim1_mod[40,42,33,][c(rep(TRUE,10),rep(FALSE,10))]\nfMRI_OFF<-bigim1_mod[40,42,33,][c(rep(FALSE,10),rep(TRUE,10))]",
+      "line_count": 2
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "# Convert the long DF representing fMRI_ON and fMRI_OFF from polar coordinates to Cartesian coordinates\nmatrix_ON <- matrix(0, nrow = 21, ncol = 21) \nmatrix_OFF <- matrix(0, nrow = 21, ncol = 21) \nfor (t in 1:10) {\n  for (p in 1:8) {\n    x = 11+t*cos(phi_8_vec[p,t])\n    y = 11+t*sin(phi_8_vec[p,t])\n    matrix_ON[x,y]  <- fMRI_ON[(p-1)*10 +t]\n    matrix_OFF[x,y] <- fMRI_OFF[(p-1)*10 +t]\n  }\n}\n# smooth/blur the matrices\nmatrix_ON_smooth <- (1/10000)*as.matrix(spatstat::blur(spatstat::as.im(matrix_ON), sigma=0.5))\nmatrix_OFF_smooth <- (1/10000)*as.matrix(spatstat::blur(spatstat::as.im(matrix_OFF), sigma=0.5))",
+      "line_count": 14
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "# fix the plot_ly Text Lables\nx <- vector()\ny <- vector()\ni <- 1\nfor (t in 1:10) {\n  for (p in 1:8) {\n    x[i] = 11+t*cos(phi_8_vec[p,t])\n    y[i] = 11+t*sin(phi_8_vec[p,t])\n    i <- i+1\n  }\n}",
+      "line_count": 11
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "hoverText <- cbind(x=1:21, y=1:21, height=as.vector(t(matrix_ON_smooth))) # tail(mytext)\ncustom_txt <- matrix(NA, nrow=21, ncol=21)\nhoverTextOFF <- cbind(x=1:21, y=1:21, height=as.vector(t(matrix_OFF_smooth))) # tail(mytext)\ncustom_txtOFF <- matrix(NA, nrow=21, ncol=21)\n\nfor (x in 1:21) {\n   for (y in 1:21) {\n     t = sqrt((x-11)^2 + (y-11)^2)\n     p = atan2(y-11, x-11)\n     custom_txt[x,y] <- paste(' fMRI: ', round(hoverText[(x-1)*21+y, 3], 3),\n                    '\\n time: ', round(t, 0),\n                    '\\n phi: ', round(p, 2)) \n     custom_txtOFF[x,y] <- paste(' fMRI: ', round(hoverTextOFF[(x-1)*21+y, 3], 3),\n                    '\\n time: ', round(t, 0),\n                    '\\n phi: ', round(p, 2)) \n   }\n}",
+      "line_count": 17
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "xx2 <- 11 + c(-10:10) %o% cos(seq(-pi, pi, 2*pi/20))\nyy2 <- 11 + c(-10:10) %o% sin(seq(-pi, pi, 2*pi/20))\n#zz2 <- as.vector(matrix_ON_smooth) %o% rep(1, 21*21)\nzz2 <- matrix_ON_smooth\nww2 <- matrix_OFF_smooth\ndd2 <- matrix_ON_smooth-matrix_OFF_smooth\n\n#plot 2D into 3D and make the text of the diameter (time), height (r), and phase (phi)\nf <- list(family = \"Courier New, monospace\", size = 18, color = \"black\")\nx <- list(title = \"k1\", titlefont = f)\ny <- list(title = \"k2\", titlefont = f)\nz <- list(title = \"fMRI Kime-series\", titlefont = f)",
+      "line_count": 12
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "datatable(fmri_kimesurface(bigim1_mod,c(44,42,33))[[1]])",
+      "line_count": 1
+    },
+    {
+      "section": "Kime-series/Kime-surfaces (spacekime analytics protocol)",
+      "code": "fmri_kimesurface(bigim1_mod,c(44,42,33))[[2]]\nfmri_kimesurface(bigim1_mod,c(44,42,33))[[3]]\nfmri_kimesurface(bigim1_mod,c(44,42,33))[[4]]",
+      "line_count": 3
+    },
+    {
+      "section": "Interactive plotly Example",
+      "code": "bigim1_mask<-bigim1_mod\nfor (i in 1:160) {\n  bigim1_mask[,,,i]<-bigim1_mask[,,,i]*mask\n}",
+      "line_count": 4
+    },
+    {
+      "section": "Interactive plotly Example",
+      "code": "fmri_image(bigim1_mod, option = \"manually\", voxel_location = c(40,40,30), time = 4)",
+      "line_count": 1
+    },
+    {
+      "section": "Interactive plotly Example",
+      "code": "fmri_image(bigim1_mask, option = \"manually\", voxel_location = c(40,40,30), time = 4)",
+      "line_count": 1
+    },
+    {
+      "section": "Interactive plotly Example",
+      "code": "fmri_ts_forecast(smoothmod,c(41,44,33))",
+      "line_count": 1
+    },
+    {
+      "section": "Motor area detection",
+      "code": "fmri_generate = fmri_simulate_func(dim_data = c(64, 64, 40), mask = mask, \n                                   ons = c(1, 21, 41, 61, 81, 101, 121, 141), \n                                   dur = c(10, 10, 10, 10, 10, 10, 10, 10))",
+      "line_count": 3
+    },
+    {
+      "section": "Motor area detection",
+      "code": "# statistical method HRF needs parameter ons and dur\npval1 = fmri_stimulus_detect(fmridata= bigim1_mod, mask = mask,\n                             stimulus_idx = c(1:160)[rep(c(TRUE,FALSE), c(10,10))],\n                             method = \"HRF\" , \n                             ons = c(1, 21, 41, 61, 81, 101, 121, 141), \n                             dur = c(10, 10, 10, 10, 10, 10, 10, 10) )\n\n# statistical method t-test for real-valued fMRI data\npval2 = fmri_stimulus_detect(fmridata= bigim1_mod, mask = mask,\n                             stimulus_idx = c(1:160)[rep(c(TRUE,FALSE), c(10,10))],\n                             method = \"t-test\")\n\n# statistical method Wilk's Lambda for complex-valued data\npval3 = fmri_stimulus_detect(fmridata = bigim1, mask = mask,\n                             stimulus_idx = c(1:160)[rep(c(TRUE,FALSE), c(10,10)) ], \n                             method = \"Wilks-Lambda\" )\n\n# do the fdr correction and the spatial clustering\n# pval4 is the pval1 after the post-hoc processing\npval4 = fmri_post_hoc(pval1, fdr_corr = \"fdr\",\n                    \t\t\t\t\t\t spatial_cluster.thr = 0.05,\n                    \t\t\t\t\t\t spatial_cluster.size = 5, \n                    \t\t\t\t\t\t show_comparison = FALSE)\n",
+      "line_count": 24
+    },
+    {
+      "section": "Motor area detection",
+      "code": "summary(pval1)\nsummary(pval2)\nsummary(pval3)\nsummary(pval4)",
+      "line_count": 4
+    },
+    {
+      "section": "Motor area visualization",
+      "code": "pval1_3d = fmri_3dvisual(pval1, mask, p_threshold = 0.05, method=\"scale_p\", multi_pranges=TRUE, title=\"HRF method\")\n\npval1_3d$plot",
+      "line_count": 3
+    },
+    {
+      "section": "Motor area visualization",
+      "code": "pval4_3D = fmri_3dvisual(pval4, mask, p_threshold = 0.05, method=\"scale_p\",\n                         multi_pranges=TRUE, title=\"HRF method after post-hoc\")\n\npval4_3D$plot",
+      "line_count": 4
+    },
+    {
+      "section": "Motor area visualization",
+      "code": "for(axis in c(\"x\", \"y\", \"z\")){\n  axis_i = switch(axis, \n                  \"x\" = {35},\n                  \"y\" = {30},\n                  \"z\" = {22})\n  print(fmri_2dvisual(pval1, list(axis, axis_i), \n                      hemody_data=NULL, mask=mask, \n                      p_threshold = 0.05, legend_show = TRUE, \n                      method = \"scale_p\",\n                      color_pal = \"YlOrRd\", multi_pranges=TRUE))\n}\n\t\t\t",
+      "line_count": 12
+    },
+    {
+      "section": "Motor area visualization",
+      "code": "for(axis in c(\"x\", \"y\", \"z\")){\n  axis_i = switch(axis, \n                  \"x\" = {35},\n                  \"y\" = {30},\n                  \"z\" = {22})\n  print(fmri_2dvisual(pval1, list(axis, axis_i), \n                      hemody_data=hemody, mask=mask, \n                      p_threshold = 0.05, legend_show = TRUE, \n                      method = \"scale_p\",\n                      color_pal = \"YlOrRd\", multi_pranges=TRUE))\n}",
+      "line_count": 11
+    },
+    {
+      "section": "Motor area visualization",
+      "code": "fmri_pval_comparison_3d(list(pval1, pval2), mask, \n    \t\t\t\t            list(0.05, 0.05), list(\"scale_p\", \"scale_p\"), \n    \t\t\t\t            multi_pranges=FALSE)",
+      "line_count": 3
+    },
+    {
+      "section": "Motor area visualization",
+      "code": "fmri_pval_comparison_2d(list(pval2, pval1), \n      \t\t\t\t           list('t-test', 'HRF'),\n      \t\t\t\t           list(list(35, 33, 22), list(40, 26, 33)), \n      \t\t\t\t           hemody_data = NULL, \n      \t\t\t\t           mask = mask, p_threshold = 0.05, \n      \t\t\t\t           legend_show = FALSE, method = 'scale_p',\n      \t\t\t\t           color_pal = \"YlOrRd\", multi_pranges=FALSE)",
+      "line_count": 7
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "phase1_pval = fmri_ROI_phase1(bigim1_mod, mask_label, mask_dict,\n                              stimulus_idx = c(1:160)[rep(c(TRUE,FALSE), c(10,10))])$all_ROI$pval_t",
+      "line_count": 2
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "phase2_pval = fmri_ROI_phase2(fmridata = bigim1_mod, label_mask = mask_label, label_dict = mask_dict, \n                              stimulus_idx = c(1, 21, 41, 61, 81, 101, 121, 141),\n                              stimulus_dur = c(10, 10, 10, 10, 10, 10, 10, 10),\n                              rrr_rank = 3, fmri.design_order = 2,\n                              fmri.stimulus_TR = 3, method = \"t_test\")",
+      "line_count": 5
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "phase3_pval = fmri_post_hoc(phase2_pval , fdr_corr = \"fdr\",\n                            spatial_cluster.thr = 0.05,\n                            spatial_cluster.size = 5, \n                            show_comparison = FALSE)",
+      "line_count": 4
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "fmri_3dvisual_region(TCIU::phase1_pval, label_mask, label_index,\n                     label_name, title = \"phase1 p-values\", rank = \"value\")",
+      "line_count": 2
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "fmri_3dvisual_region(TCIU::phase1_pval, label_mask, label_index,\n                     label_name, 5, title = \"phase1 top five p-values\", rank = \"value\")",
+      "line_count": 2
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "# for 3D visualization, user needs to include empty region in the label\nlabel_index = c(0, label_index)\nlabel_name = c(\"empty\", label_name)\nfmri_3dvisual_region(TCIU::phase2_pval, label_mask, label_index,\n                    label_name, title = \"phase2 p-values\")",
+      "line_count": 5
+    },
+    {
+      "section": "Three-phase ROI Analysis",
+      "code": "fmri_3dvisual_region(list(TCIU::phase2_pval,TCIU::phase3_pval), label_mask, label_index,\n                    label_name, title = \"phase2&3 p-values\")",
+      "line_count": 2
+    }
+  ]
+}

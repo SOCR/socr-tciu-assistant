@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "created_at": "2025-05-15T17:01:01.396922",
+    "total_sections": 9,
+    "total_code_chunks": 24,
+    "total_tables": 1,
+    "r_libraries": [
+      "TCIU",
+      "caret",
+      "doParallel",
+      "dplyr",
+      "foreach",
+      "ggplot2",
+      "mice",
+      "plotly",
+      "randomForest",
+      "rattle",
+      "rpart"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Main",
+      "content": "---\ntitle: \"Spacekime Analytics (Time Complexity and Inferential Uncertainty)\"\nsubtitle: \"Structured Big Data Analytics Case-Study (UKBB)\"\nauthor: \"SOCR Team \"\ndate: \"`r format(Sys.time(),'%m/%d/%Y')`\"\noutput: \n  html_document:\n    theme: spacelab\n    highlight: tango\n    includes:\n      before_body: TCIU_header.html\n    toc: true\n    number_sections: true\n    toc_depth: 2\n    toc_float:\n      collapsed: false\n      smooth_scroll: true\n    code_folding: hide\n\n\nIn this case study, we will look at another interesting example of a large structured tabular dataset [UK Biobank (UKBB) data](http://www.ukbiobank.ac.uk/data-showcase). The goal of this study is to compare the data representations as well as the subsequent data analytics between classical time-series and kime-series.",
+      "word_count": 89
+    },
+    {
+      "title": "Data Preparation",
+      "content": "A previous investigation [Predictive Big Data Analytics using the UK Biobank Data](http://doi.org/10.1038/s41598-019-41634-y) based on $7,614$ clinical information, phenotypic features, and neuroimaging data of $9,914$ UKBB subjects, reported the twenty most salient derived imaging biomarkers associated with mental health conditions (e.g., depression, anxiety). By jointly representing and modeling the significant clinical and demographic variables along with the derived salient neuroimaging features, the researchers predicted the presence and progression of depression and other mental health disorders in the cohort of UKBB participating volunteers. We will explore the effects of kime-direction on the findings based on the same data and similar analytical methods. To streamline the demonstration, enable efficient calculations, and facilitate direct interpretation, we will transform the data into a tight computable object of dimensions $9,914\\times 106$ (participants × features) that can be processed, interpreted and visualized more intuitively. An interactive demonstration of this tensor data showing linear and non-linear dimensionality reduction is available [online](https://socr.umich.edu/HTML5/SOCR_TensorBoard_UKBB).\n\n\nThe UKBB archive contains incomplete records. We employed multiple imputation using chained equations (MICE) to obtain complete instances of the data and avoid issues with missing observations.",
+      "word_count": 180
+    },
+    {
+      "title": "Modeling Structure",
+      "content": "To assess the quality of kime-series based analytical inference, we will focus on predicting a specific clinical phenotype – Ever depressed for a whole week 1, i.e. column \"X4598.2.0\". A number of model-based and model-free methods can be used for supervised and unsupervised, retrodictive and predictive strategies for binary, categorical, or continuous regression, clustering and classification. We will demonstrate a Random Forest classification approach for forecasting this binary clinical depression phenotype. \n\nOther preprocessing steps were necessary prior to the main data analytics. To construct a kime-series, we randomly splitted the UKBB archive into 11 time epochs. We used all 11 epochs for phase estimation, and we iteratively used 10 epochs for modeling training and 1 epoch for model testing. Many alternative kime-direction aggregator functions can be employed, for this demonstration, we used nil-phase, averaging and smoothing splines with different degrees of freedom separately to estimate the unknown phase-angles.\n\nNote that in later analysis, we found that the first 50 columns of neuroimaging data do not contribute much to this specific classification task. So in the following analysis, the building blocks of our model contain only elements from the last 56 clinical features (54 of them as predictors, 1 as response variable, 1 discarded due to close relationship with the response variable).",
+      "word_count": 211
+    },
+    {
+      "title": "Fourier Transform",
+      "content": "We implemented Fourier Transform to shift the 54 predictors from time domain to frequency domain.",
+      "word_count": 15
+    },
+    {
+      "title": "Phase Estimation",
+      "content": "## Nil Phase Estimation\nWe applied Nil-Phase estimation as a trivial baseline. The idea is to estimate phase with 0 at each position of the fft transformed data. We'll show its model performance compared to true-phase and other phase estimation methods in the next section.\n\n## Average Phase Estimation\nBy this method, we average over the 11 estimated phase for each position of the $900\\times 54$ matrix.\n\n## Smoothing Spline Phase Estimation\nWe fit a smoothing spline to the 11 estimated phase values for each position of the $900\\times 54$ matrix. We'll see later that different degrees of freedom of the smoothing spline function will result in different prediction accuracy. The average phase and nil phase estimation can actually be seen as special cases of the smoothing spline estimation with degrees of freedom df = 1 and df = 0 respectively.\n\nWe visualize this estimation using one biomarker column \"X31.0.0\" as an example:",
+      "word_count": 153
+    },
+    {
+      "title": "Inverse Fourier Transform",
+      "content": "After getting the phase estimation, we need to reverse back into the time domain to conduct further classification tasks. The ability to reflect the structure of the original dataset after inverse fft represents the adequacy of the phase estimation process.\n\nWe show the results of smoothing spline phase estimation with df = 10 as an example:\n\n\n*Original Data*\n\n*Raw Inverse FFT*\n\n*Round Inverse FFT*",
+      "word_count": 64
+    },
+    {
+      "title": "Inverse FFT based Random Forest",
+      "content": "Then, we compared the model performance of a classification task based on original time-series data and transferred data utilizing a different phase estimation approach.\n\n## Original Data based Random Forest (Unknown True-Phase)\nWe first build the model based on original data. For comparison across different phase estimation methods, we use the 4th epoch as the test set and the other 10 epochs as the training set for all methods. We have also implemented cross-validation to check performance with each 11 epoch as the testing set and found that the model performance remains similar. So for simplicity, we will only show the result of one train-test epoch setting.\n\n\n## Smoothing Spline Phase Estimation based Random Forest \nThen we show the results for Random Forest based on transformed data using smoothing spline phase estimation with df = 10 as an example. Later we will show the training and testing accuracy trending with degrees of freedom increasing from 2 to 11. We can see that smoothing spline phase estimation with df = 10 can give us a competitive classification accuracy compared to true-phase Random Forest.\n\n\n## Average Phase Estimation based Random Forest\nWe will see that with average phase estimation, our model has bad classification performance. This also indicates the importance of phase information.\n\n\n## Prediction Accuracy Trend w.r.t. Degrees of Freedom in Phase Estimation\nFinally, we visualize the training and testing accuracy of Inverse FFT-based Random Forest with different degrees of freedom in the smoothing spline phase estimation process. Note that we include the Nil-Phase estimation and the Average-Phase estimation as special cases with df = 0 and df = 1 respectively. The dotted horizontal line in the plot represents the testing accuracy of original data based Random Forest. This plot provides strong evidence of the importance of correctly estimating kime-phases.",
+      "word_count": 299
+    },
+    {
+      "title": "Kimesurface Transformation",
+      "content": "We further compare the characteristics of two groups of people with or without suffering from depression in the kime space. For better visualization, we show the kime surface of one feature (\"X4631.2.0: Ever unenthusiastic/disinterested for a whole week\") that is most correlated with depression as an example. \n\n\nWe apply **NuLT** function which achieves Laplace Transform to two time-series respectively and we visualize two kime-surfaces.",
+      "word_count": 64
+    },
+    {
+      "title": "Inverse Kimesurface Transformation",
+      "content": "We further recover the time-series from the kime-surface by applying the **ctILT** to the **NuLT** function output.\n\nWe plot the difference of recovered and original time-series to validate the LT and ILT process.\n\n<!--html_preserve-->\n<div>\n    \t<footer><center>\n\t\t\t<a href=\"https://www.socr.umich.edu/\">SOCR Resource</a>\n\t\t\t\tVisitor number <img class=\"statcounter\" src=\"https://c.statcounter.com/5714596/0/038e9ac4/0/\" alt=\"Web Analytics\" align=\"middle\" border=\"0\">\n\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar d = new Date();\n\t\t\t\t\tdocument.write(\" | \" + d.getFullYear() + \" | \");\n\t\t\t\t</script> \n\t\t\t\t<a href=\"https://socr.umich.edu/img/SOCR_Email.png\"><img alt=\"SOCR Email\"\n\t \t\t\ttitle=\"SOCR Email\" src=\"https://socr.umich.edu/img/SOCR_Email.png\"\n\t \t\t\tstyle=\"border: 0px solid ;\"></a>\n\t \t\t </center>\n\t \t</footer>\n\n\t<!-- Start of StatCounter Code -->\n\t\t<script type=\"text/javascript\">\n\t\t\tvar sc_project=5714596; \n\t\t\tvar sc_invisible=1; \n\t\t\tvar sc_partition=71; \n\t\t\tvar sc_click_stat=1; \n\t\t\tvar sc_security=\"038e9ac4\"; \n\t\t</script>\n\t\t\n\t\t<script type=\"text/javascript\" src=\"https://www.statcounter.com/counter/counter.js\"></script>\n\t<!-- End of StatCounter Code -->\n\t\n\t<!-- GoogleAnalytics -->\n\t\t<script src=\"https://www.google-analytics.com/urchin.js\" type=\"text/javascript\"> </script>\n\t\t<script type=\"text/javascript\"> _uacct = \"UA-676559-1\"; urchinTracker(); </script>\n\t<!-- End of GoogleAnalytics Code -->\n</div>\n<!--/html_preserve-->",
+      "word_count": 128
+    }
+  ],
+  "tables": [
+    {
+      "section": "Main",
+      "content": "  # word_document\n---",
+      "row_count": 2
+    }
+  ],
+  "r_code": [
+    {
+      "section": "Main",
+      "code": "knitr::opts_chunk$set(echo = TRUE)\nrm(list = ls())",
+      "line_count": 2
+    },
+    {
+      "section": "Main",
+      "code": "library(TCIU)\nlibrary(ggplot2)\nlibrary(dplyr)\nlibrary(doParallel)\nlibrary(plotly)\nlibrary(rpart)\nlibrary(caret)\nlibrary(rattle)\nlibrary(mice)\nlibrary(foreach)",
+      "line_count": 10
+    },
+    {
+      "section": "Data Preparation",
+      "code": "UKBB_data <- get(load(\"UKBB_data_cluster_label.Rdata\"))\nUKBB_Colnames <- colnames(UKBB_data)\n\n# Extract 106 derived columns from dimensionality reduction process.\n# 1. top-50 derived NI biomarkers \nload(\"NI_Biomarkers_namelist.RData\")\ntop50_NI_Biomarkers <- NI_Biomarkers_namelist\n\n# 2. extract main clinical features \n## binary\ntop25_BinaryClinical_Biomarkers <- c(\"X1200.0.0\", \"X1200.2.0\", \"X1170.0.0\", \"X1190.2.0\", \"X1170.2.0\", \"X2080.0.0\", \"X6138.2.2\", \"X20117.0.0\", \"X6138.0.2\", \"X2877.0.0\", \"X20117.2.0\", \"X2877.2.0\", \"X1190.0.0\", \"X4968.2.0\", \"X1249.2.0\", \"X1190.1.0\", \"X1170.1.0\", \"X2080.2.0\", \"X4292.2.0\", \"X2050.0.0\", \"X1628.0.0\", \"X1200.1.0\", \"X20018.2.0\", \"X4292.0.0\", \"X3446.0.0\")\n## polytomous\ntop31_PolytomousClinical_Biomarkers <- c(\"X31.0.0\", \"X22001.0.0\", \"X1950.0.0\", \"X1950.2.0\", \"X1980.0.0\", \"X2040.2.0\", \"X1980.2.0\", \"X2030.0.0\", \"X2090.0.0\", \"X2040.0.0\", \"X1618.2.0\", \"X1618.0.0\", \"X1210.0.0\", \"X2030.2.0\", \"X2000.0.0\", \"X1930.0.0\", \"X2090.2.0\", \"X2000.2.0\", \"X1210.2.0\", \"X1618.1.0\", \"X4653.2.0\", \"X1970.2.0\", \"X1970.0.0\", \"X1980.1.0\", \"X1930.2.0\", \"X4598.2.0\", \"X4598.0.0\", \"X4653.0.0\", \"X2090.1.0\", \"X2040.1.0\", \"X4631.2.0\")\n\n# 3. Construct the Computable data object including all salient predictors\nColNameList <- c(top50_NI_Biomarkers, top25_BinaryClinical_Biomarkers,top31_PolytomousClinical_Biomarkers)\ncol.index <- which(colnames(UKBB_data) %in% ColNameList)\ntight106_UKBB_data <- UKBB_data[ , col.index]\ndim(tight106_UKBB_data)",
+      "line_count": 19
+    },
+    {
+      "section": "Data Preparation",
+      "code": "# This chunk is not set up to run due to long runtime; instead we load the pretrained imputation results.\n# MICE imputation (With parallel core computing)\nnumber_cores <- detectCores() - 2\nclustUKBB <- makeCluster(number_cores)\nclusterSetRNGStream(clustUKBB, 1234)\nregisterDoParallel(clustUKBB)\n\nimp_tight106_UKBB_data <-\n  foreach(no = 1:number_cores, \n          .combine = ibind, \n          .export = \"tight106_UKBB_data\",\n          .packages = \"mice\") %dopar% {mice(tight106_UKBB_data, m=2,maxit=3, printFlag=T, seed=1234, method = 'cart')}\n\ncomp_imp_tight106_UKBB_data <- as.matrix(complete(imp_tight106_UKBB_data), \n                                         dimnames = list(NULL, colnames(tight106_UKBB_data)))\nstopCluster(clustUKBB)\nsave(comp_imp_tight106_UKBB_data, file = \"origin_after_imputation.RData\")",
+      "line_count": 17
+    },
+    {
+      "section": "Modeling Structure",
+      "code": "load(\"origin_after_imputation.RData\")\n# randomly splitted the UKBB archive into 11 time epochs\nset.seed(1234)\nsuffle_rid <- sample(1:nrow(comp_imp_tight106_UKBB_data))\ncomp_imp_tight106_UKBB_data <- comp_imp_tight106_UKBB_data[suffle_rid[1:9900],]\ncol_name <- colnames(comp_imp_tight106_UKBB_data)\ndim(comp_imp_tight106_UKBB_data) <- c(11, 900, dim(comp_imp_tight106_UKBB_data)[2])\ndim(comp_imp_tight106_UKBB_data)",
+      "line_count": 8
+    },
+    {
+      "section": "Fourier Transform",
+      "code": "# fft of all 54 predictors\nset.seed(1234)\nFT_epochs_tight106_UKBB <- array(complex(), c(11, 900, 54))\nmag_FT_epochs_tight106_UKBB <- array(NA, c(11, 900, 54))\nphase_FT_epochs_tight106_UKBB <- array(NA, c(11, 900, 54))\n\nfor (i in 1:11) {\n  FT_epochs_tight106_UKBB[i, , ] <- fft(comp_imp_tight106_UKBB_data[i, , c(51:94,97:106)])\n  # col96 <X4598.2.0>: response variable; col95 <X4598.0.0>: highly related to the response variable\n  # fourier transform\n  X2 <- FT_epochs_tight106_UKBB[i, , ]\n  mag_FT_epochs_tight106_UKBB[i, , ] <- sqrt(Re(X2)^2+Im(X2)^2); \n  phase_FT_epochs_tight106_UKBB[i, , ] <- atan2(Im(X2), Re(X2)); \n}\ndim(phase_FT_epochs_tight106_UKBB)",
+      "line_count": 15
+    },
+    {
+      "section": "Phase Estimation",
+      "code": "# Nil Phase\nset.seed(1234)\nift_NilPhase <- array(NA, c(11, 900, 54))\nfor(i in 1:11){\n  Real_Nil <- mag_FT_epochs_tight106_UKBB[i, , ] * cos(0)\n  Imaginary_Nil <- mag_FT_epochs_tight106_UKBB[i, , ] * sin(0)\n  ift_NilPhase[i,,] <- Re(fft(Real_Nil+1i*Imaginary_Nil, inverse = T)/length(mag_FT_epochs_tight106_UKBB[i,,]))\n}",
+      "line_count": 8
+    },
+    {
+      "section": "Phase Estimation",
+      "code": "# Average Phase\navgPhase_FT_epochs_tight106_UKBB <- apply(phase_FT_epochs_tight106_UKBB, c(2,3), mean)\nset.seed(1234)\nift_AvgPhase <- array(NA, c(11, 900, 54))\nfor(i in 1:11){\n  Real_Avg <- mag_FT_epochs_tight106_UKBB[i, , ] * cos(avgPhase_FT_epochs_tight106_UKBB)\n  Imaginary_Avg <- mag_FT_epochs_tight106_UKBB[i, , ] * sin(avgPhase_FT_epochs_tight106_UKBB)\n  ift_AvgPhase[i,,] <- Re(fft(Real_Avg+1i*Imaginary_Avg, inverse = T)/length(mag_FT_epochs_tight106_UKBB[i,,]))\n}",
+      "line_count": 9
+    },
+    {
+      "section": "Phase Estimation",
+      "code": "plot(1:11,phase_FT_epochs_tight106_UKBB[,10,1],'b',main = \"phase_FT_epochs_tight106_UKBB[,10,1]\",ylab = \"fft phase\",xlab = \"epochs 1-11\",lty = 1,lwd = 1)\nlines(1:11,smooth.spline(1:11,phase_FT_epochs_tight106_UKBB[,10,1],df = 10)$y,col = 'red')\nlines(1:11,smooth.spline(1:11,phase_FT_epochs_tight106_UKBB[,10,1],df = 5)$y,col = 'blue')\nlegend(\"topleft\",legend = c(\"df = 10\",\"df = 5\"),lty = 1:1,col = c(\"red\",\"blue\"),cex = 0.8)",
+      "line_count": 4
+    },
+    {
+      "section": "Inverse Fourier Transform",
+      "code": "# inverse FFT example - smoothing spline df = 10\nset.seed(1234)\nift_splinePhase <- array(NA, c(11, 900, 54))\nsmooth_spline_value <- array(NA, c(11, 900, 54))\ndf <- 10\n\nfor(i in 1:900){\n  for(j in 1:54){\n    smooth_spline_value[,i,j] <- smooth.spline(1:11,phase_FT_epochs_tight106_UKBB[,i,j],df = df)$y\n  }\n}\n\nfor(i in 1:11){\n  Real_Avg <- mag_FT_epochs_tight106_UKBB[i, , ] * cos(smooth_spline_value[i, , ])\n  Imaginary_Avg <- mag_FT_epochs_tight106_UKBB[i, , ] * sin(smooth_spline_value[i, , ])\n  ift_splinePhase[i,,] <- Re(fft(Real_Avg+1i*Imaginary_Avg, inverse = T)/length(mag_FT_epochs_tight106_UKBB[i,,]))\n}",
+      "line_count": 17
+    },
+    {
+      "section": "Inverse Fourier Transform",
+      "code": "head(comp_imp_tight106_UKBB_data[1, ,52],100)",
+      "line_count": 1
+    },
+    {
+      "section": "Inverse Fourier Transform",
+      "code": "head(ift_splinePhase[1,,2],100)",
+      "line_count": 1
+    },
+    {
+      "section": "Inverse Fourier Transform",
+      "code": "head(round(ift_splinePhase[1,,2]),100)",
+      "line_count": 1
+    },
+    {
+      "section": "Inverse FFT based Random Forest",
+      "code": "library(randomForest)\nrf_train_data_ift <- c()\nlabel_train <- c()\ntest_epoch_idx <- 4\nfor(i in setdiff(1:11,test_epoch_idx)){\n  rf_train_data_ift <- rbind(rf_train_data_ift,comp_imp_tight106_UKBB_data[i,,c(51:94,97:106)])\n  label_train <- c(label_train,comp_imp_tight106_UKBB_data[i, ,96])\n}\nrf_train_data_ift <- as.data.frame(rf_train_data_ift)\nrf_train_label_ift <- as.factor(label_train)\n\nset.seed(1234)\nrf_Phase_ift_original_data <- randomForest(rf_train_label_ift ~ . ,data= rf_train_data_ift)\nrf_Phase_ift_original_data\npred_train = predict(rf_Phase_ift_original_data, type=\"class\")\nconfusionMatrix(pred_train, rf_train_label_ift)",
+      "line_count": 16
+    },
+    {
+      "section": "Inverse FFT based Random Forest",
+      "code": "rf_train_data_ift <- c()\nlabel_train <- c()\ntest_epoch_idx <- 4\nfor(i in setdiff(1:11,test_epoch_idx)){\n  rf_train_data_ift <- rbind(rf_train_data_ift,ift_splinePhase[i,,])\n  label_train <- c(label_train,comp_imp_tight106_UKBB_data[i, ,96])\n}\nrf_train_data_ift <- as.data.frame(rf_train_data_ift)\nrf_train_label_ift <- as.factor(label_train)\n\nset.seed(1234)\nrf_Phase_ift_spline <- randomForest(rf_train_label_ift ~ . ,data= rf_train_data_ift)\nrf_Phase_ift_spline\npred_train = predict(rf_Phase_ift_spline, type=\"class\")\nconfusionMatrix(pred_train, rf_train_label_ift)",
+      "line_count": 15
+    },
+    {
+      "section": "Inverse FFT based Random Forest",
+      "code": "rf_train_data_ift <- c()\nlabel_train <- c()\ntest_epoch_idx <- 4\nfor(i in setdiff(1:11,test_epoch_idx)){\n  rf_train_data_ift <- rbind(rf_train_data_ift,ift_AvgPhase[i,,])\n  label_train <- c(label_train,comp_imp_tight106_UKBB_data[i, ,96])\n}\nrf_train_data_ift <- as.data.frame(rf_train_data_ift)\nrf_train_label_ift <- as.factor(label_train)\n\nset.seed(1234)\nrf_Phase_ift_avg <- randomForest(rf_train_label_ift ~ . ,data= rf_train_data_ift)\nrf_Phase_ift_avg\npred_train = predict(rf_Phase_ift_avg, type=\"class\")\nconfusionMatrix(pred_train, rf_train_label_ift)",
+      "line_count": 15
+    },
+    {
+      "section": "Inverse FFT based Random Forest",
+      "code": "# helper function 1: compute smoothing spline with different degrees of freedom\nift_df <- function(df){\n  set.seed(1234)\n  ift_splinePhase <- array(NA, c(11, 900, 54))\n  smooth_spline_value <- array(NA, c(11, 900, 54))\n  for(i in 1:900){\n    for(j in 1:54){\n      smooth_spline_value[,i,j] <- smooth.spline(1:11,phase_FT_epochs_tight106_UKBB[,i,j],df = df)$y\n    }\n  }\n  for(i in 1:11){\n    Real_Avg <- mag_FT_epochs_tight106_UKBB[i, , ] * cos(smooth_spline_value[i, , ])\n    Imaginary_Avg <- mag_FT_epochs_tight106_UKBB[i, , ] * sin(smooth_spline_value[i, , ])\n    ift_splinePhase[i,,] <- Re(fft(Real_Avg+1i*Imaginary_Avg, inverse = T)/length(mag_FT_epochs_tight106_UKBB[i,,]))\n  }\n  \n  return(ift_splinePhase)\n}\n\n# helper function 2: compute model accuracy with different test epoch (mainly developed for the cross-validation part not shown)\nrf_model_ift <- function(ift_splinePhase,test_epoch_idx){\n  # dim(ift_splinePhase) 11,900,54\n  rf_train_data_ift <- c()\n  label_train <- c()\n  for(i in setdiff(1:11,test_epoch_idx)){\n    rf_train_data_ift <- rbind(rf_train_data_ift,ift_splinePhase[i,,])\n    label_train <- c(label_train,comp_imp_tight106_UKBB_data[i, ,96])\n  }\n  rf_train_data_ift <- as.data.frame(rf_train_data_ift)\n  rf_train_label_ift <- as.factor(label_train)\n  # dim(rf_train_data_ift) 9000, 54\n  set.seed(1234)\n  rf_Phase_ift <- randomForest(rf_train_label_ift ~ . ,data= rf_train_data_ift)\n  # OOB_accuracy <- 1- rf_Phase_ift$err.rate[,1][500] # 500 - number of trees\n  \n  # rf_Phase_ift \n  pred_train = predict(rf_Phase_ift, type=\"class\")\n  train_accuracy = sum(pred_train == rf_train_label_ift)/length(rf_train_label_ift)\n  \n  # test\n  rf_test_data_ift <- ift_splinePhase[test_epoch_idx,,]\n  rf_test_label_ift <- as.factor(comp_imp_tight106_UKBB_data[test_epoch_idx, ,96])\n  \n  pred_test = predict(rf_Phase_ift, rf_test_data_ift, type=\"class\")\n  test_accuracy = sum(pred_test == rf_test_label_ift)/length(rf_test_label_ift)\n\n  return(c(train_accuracy,test_accuracy))\n}",
+      "line_count": 48
+    },
+    {
+      "section": "Inverse FFT based Random Forest",
+      "code": "# This chunk is not setup to run due to long runtime; instead we load the pretrained results.\ntrain_test_accuracy <- c()\nfor(df in 2:11){\n  train_test_accuracy <- rbind(train_test_accuracy,c(rf_model_ift(ift_df(df),4),df = df))\n}\n\ntrain_test_accuracy <- as.data.frame(train_test_accuracy)\nnames(train_test_accuracy) <- c(\"train_accuracy\",\"test_accuracy\",\"df\")\n\n# add results from nil-phase and average phase \ntrain_test_accuracy <- rbind(train_test_accuracy,c(rf_model_ift(ift_AvgPhase,4),1)) # avg-phase\ntrain_test_accuracy <- rbind(train_test_accuracy,c(rf_model_ift(ift_NilPhase,4),0)) # nil-phase\norigin_acc <- rf_model_ift(comp_imp_tight106_UKBB_data[,,c(51:94,97:106)],4)        # original data\nsave(train_test_accuracy,origin_acc, file = \"train_test_accuracy_testepoch4.RData\" )",
+      "line_count": 14
+    },
+    {
+      "section": "Inverse FFT based Random Forest",
+      "code": "library(ggplot2)\nload(\"train_test_accuracy_testepoch4.RData\")\naccuracy_data <- reshape(train_test_accuracy, idvar = \"df\", varying = list(1:2),v.names = \"accuracy\", direction = \"long\") \n\nnames(accuracy_data) <- c(\"df\",\"group\",\"accuracy\")\naccuracy_data$group <- factor(accuracy_data$group,levels = c(1,2),labels = c(\"train\",\"test\"))\nggplot(data = accuracy_data, aes(x= df, y = accuracy, group = group)) +\n  geom_line(aes(color=group))+\n  geom_point(aes(shape=group,color=group)) + \n  scale_x_continuous(breaks = accuracy_data$df) + \n  geom_text(aes(label=round(accuracy,2)),hjust=0,vjust=0.2)+\n  ggtitle(\"Train & Test Accuracy of Inverse FFT-based RF with Different Degree of Freedom\") + \n  geom_hline(yintercept = origin_acc[2], linetype=\"dashed\")  ",
+      "line_count": 13
+    },
+    {
+      "section": "Kimesurface Transformation",
+      "code": "# data preparation\nload(\"origin_after_imputation.RData\")\nset.seed(1234)\nsuffle_rid <- sample(1:nrow(comp_imp_tight106_UKBB_data))\ncomp_imp_tight106_UKBB_data <- as.data.frame(comp_imp_tight106_UKBB_data[suffle_rid[1:9900],])\n\ndepressed_data <- filter(comp_imp_tight106_UKBB_data, X4598.2.0 == 1) # 5007, 106\nnot_depressed_data <- filter(comp_imp_tight106_UKBB_data, X4598.2.0 == 0)\n\ndepressed_idx = which(comp_imp_tight106_UKBB_data$X4598.2.0 == 1)\nnot_depressed_idx = which(comp_imp_tight106_UKBB_data$X4598.2.0 == 0)\n\nload(\"ift_splinePhase.RData\")\ndim(ift_splinePhase) <- c(9900,54)\ndepressed_data_ift = ift_splinePhase[depressed_idx,]    # dim: 5007, 54\nnot_depressed_data_ift = ift_splinePhase[not_depressed_idx,]  # dim: 4893, 54\n\n# divide into 110 epochs\ncomp_imp_tight106_UKBB_data_3D <- as.matrix(comp_imp_tight106_UKBB_data)\ndim(comp_imp_tight106_UKBB_data_3D) <- c(110,90,106)\n\nift_splinePhase_3D <- ift_splinePhase\ndim(ift_splinePhase_3D) <- c(110,90,54)\n\n# col45: (most salient predictor) X4631.2.0 (Ever unenthusiastic/disinterested for a whole week)\ndepressed_data_ift_avg_col45 <- c()\nnot_depressed_data_ift_avg_col45 <- c()\nfor(i in 1:110){\n  depressed_idx_epoch = which(comp_imp_tight106_UKBB_data_3D[i,,96] == 1)\n  not_depressed_idx_epoch = which(comp_imp_tight106_UKBB_data_3D[i,,96] == 0)\n  depressed_data_ift_avg_col45[i] = mean(ift_splinePhase_3D[i,depressed_idx_epoch,45])\n  not_depressed_data_ift_avg_col45[i] = mean(ift_splinePhase_3D[i,not_depressed_idx_epoch,45])\n}",
+      "line_count": 33
+    },
+    {
+      "section": "Kimesurface Transformation",
+      "code": "source('LT_ILT.R')\nx2 = seq(from = 1, to = 11, length.out = 50)\ny2 = seq(from = -5, to = 5, length.out = 50)\nXY = expand.grid(X = x2, Y = y2)       \ncomplex_xy = mapply(complex, real=XY$X,imaginary=XY$Y)\ntime_points <- seq(0+0.001, 2*pi, length.out = 110)\n\nY1 = depressed_data_ift_avg_col45\nkime_depressed <- NuLT(time_points, Y1, complex_xy, mirror = FALSE, range = 2*pi,k = 3)\ndim(kime_depressed) = c(length(x2), length(y2))\n\nY2 = not_depressed_data_ift_avg_col45\nkime_not_depressed <- NuLT(time_points, Y2, complex_xy, mirror = FALSE, range = 2*pi,k = 3)\ndim(kime_not_depressed) = c(length(x2), length(y2))",
+      "line_count": 14
+    },
+    {
+      "section": "Kimesurface Transformation",
+      "code": "kime_grid1 <- kime_depressed\nkime_grid2 <- kime_not_depressed\nphase_depressed <- atan2(Im(kime_grid1), Re(kime_grid1))\nmagnitude_depressed <- sqrt( Re(kime_grid1)^2+ Im(kime_grid1)^2)\nphase_not_depressed <- atan2(Im(kime_grid2), Re(kime_grid2))\nmagnitude_not_depressed <- sqrt(Re(kime_grid2)^2+ Im(kime_grid2)^2)\n\nplot_ly(hoverinfo=\"none\", showscale = FALSE)%>%\n  add_trace(z=magnitude_depressed, surfacecolor=phase_depressed, type=\"surface\",showlegend=TRUE,name = 'Depressed') %>%\n  add_trace(z=magnitude_not_depressed, surfacecolor=phase_not_depressed, type=\"surface\", opacity=0.7,showlegend=TRUE,name = 'Not Depressed') %>%\n  \n  layout(title = \"X4631.2.0 Kimesurface Difference: Depressed vs Not Depressed\",\n         # X4631.2.0 (Ever unenthusiastic/disinterested for a whole week)\n         showlegend = TRUE,\n         scene = list(aspectmode = \"manual\",\n                      aspectratio = list(x=1, y=1, z=1.0)  \n         )\n  )",
+      "line_count": 18
+    },
+    {
+      "section": "Inverse Kimesurface Transformation",
+      "code": "z2_funct_depressed <- function(z) NuLT(time_points,depressed_data_ift_avg_col45, z, k = 3, mirror = FALSE, fitwarning = FALSE, range = 2*pi)\ninv_result_depressed <- ctILT(z2_funct_depressed,nnt = 110,tend = 2*pi)\n\n# plot to validate LT and ILT\nplot(time_points, inv_result_depressed, col=\"blue\",\n     xlim=c(0,2*pi))\nlines(time_points,depressed_data_ift_avg_col45, col=\"red\")\nlegend(\"top\",c(\"recovered\",\"data\"), fill=c(\"blue\",\"red\"))\ngrid(nx = NULL, ny = NULL, col = \"lightgray\", lty = \"dotted\")",
+      "line_count": 9
+    },
+    {
+      "section": "Inverse Kimesurface Transformation",
+      "code": "# diff\nplot(time_points,inv_result_depressed - depressed_data_ift_avg_col45,lty = 1,lwd = 1,'l',col = 'blue',ylab = \"diff\", main = 'Difference of IFT recovery and original time-series')",
+      "line_count": 2
+    }
+  ]
+}
