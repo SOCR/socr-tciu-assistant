@@ -55,7 +55,7 @@ import { z } from 'zod';
       return createDataStreamResponse({
         execute: (dataStream) => {
           const result = streamText({
-            model: openai('gpt-4o'),
+            model: openai('gpt-4.1'),
             system: systemPrompt,
             messages,
             maxSteps: 5,

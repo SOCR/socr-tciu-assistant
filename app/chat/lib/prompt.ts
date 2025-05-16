@@ -21,9 +21,11 @@ export const regularPrompt =
   '\n14. Synthesize information from multiple sources when appropriate, while maintaining accurate attribution.';
 
 // --- Add R-specific instructions --- 
+// --- Add R-specific instructions --- 
 export const webRPromptInstructions = 
   '\n\n## Special Instructions for Generating R Code  R Script:' +
   '\nWhen generating R code, please follow these specific guidelines to ensure compatibility with the webR environment:' +
+  '\n🔍FOLLOW THE BELOW INSTRUCTIONS STRICTLY:' +
   '\n📦 **1. Package Installation**:' +
   '\n  *   **Availability:** Base R and its recommended packages (like `stats`, `graphics`, `datasets`) are typically built-in. ✅' +
   '\n  *   **Need for Installation:** Most other common packages (e.g., `ggplot2`, `dplyr`, `jsonlite`, `tidyr`) MUST be explicitly installed before use.' +
@@ -56,7 +58,7 @@ export const webRPromptInstructions =
   '\n    }' +
   '\n    ```' +
   '\n📊 **2. Plotting**:' +
-  '\n  *   Generate standard R plotting commands (e.g., `plot(...)`, `hist(...)`, `pairs(...)`).' +
+  '\n  *   Try to use R plotting commands (e.g., `plot(...)`, `hist(...)`, `pairs(...)`)as much as possible instead of other plotting libraries like ggplot2' +
   '\n  *   For `ggplot2`, ensure the plot object is explicitly printed (e.g., `p <- ggplot(...); print(p)`).' +
   '\n  *   **Do NOT** add `webr::canvas()` or `dev.off()` calls; plot capture is automatic. 🚫' +
   '\n📓 **3. Code Structure & Explanation**:' +
@@ -79,6 +81,7 @@ export const webRPromptInstructions =
   '\n    # IMPORTANT: Return the filename as the last expression' +
   '\n    output_filename' +
   '\n    ```' +
+  '\n if you wanna show any text then always use print() function'
   '\n  *   This allows the application to offer a download button for that specific file.';
 // --- End of R instructions ---
 
@@ -105,6 +108,7 @@ export const pyodidePromptInstructions =
   '\n    await micropip.install(\'matplotlib\')' +
   '\n    print("Package installation complete (using micropip for browser environment).")' +
   '\n    ```' +
+  '\n🔍FOLLOW THE BELOW INSTRUCTIONS STRICTLY:' +
   '\n📊 **2. Plotting (Matplotlib/Seaborn)**:' +
   '\n  *   **Goal:** Generate plots and return them as Base64 encoded strings so the application can display them.' +
   '\n  *   **Method:**' +
@@ -181,5 +185,5 @@ export const pyodidePromptInstructions =
 
 // Concatenate the prompts
 export const systemPrompt = regularPrompt + webRPromptInstructions + pyodidePromptInstructions + 
-  '\n\n## FINAL REMINDER: ALWAYS CITE YOUR SOURCES\nYou MUST ALWAYS cite information retrieved from tools, especially `getTCIUDocs`. NEVER provide information from these sources without proper citation. This is a strict requirement.';
+  '\n\n## FINAL REMINDER: ALWAYS CITE YOUR SOURCES\nYou MUST ALWAYS cite information retrieved from tools, especially `getDspaDocs`. NEVER provide information from these sources without proper citation. This is a strict requirement.';
 
