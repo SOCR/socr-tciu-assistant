@@ -24,7 +24,16 @@ const EnhancedCodeBlock = dynamic(
   () => import('./enhanced-code-block').then((mod) => mod.EnhancedCodeBlock),
   {
     ssr: false, // Ensure this component only renders on the client
-    loading: () => <pre><code>Loading code block...</code></pre>, // Optional loading state
+    loading: () => { return <pre><code>Loading code block...</code></pre>; }, // Optional loading state
+  }
+);
+
+// Dynamically import MermaidDisplay with SSR disabled
+const MermaidDisplay = dynamic(
+  () => import('./MermaidDisplay').then((mod) => mod.MermaidDisplay),
+  {
+    ssr: false,
+    loading: () => { return <div className="p-4 text-center text-gray-500 dark:text-gray-400">Loading diagram...</div>; },
   }
 );
 
@@ -66,7 +75,22 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 // Function to create component map, including the citation counter
 const createMarkdownComponents = (citationMap: React.MutableRefObject<Map<string, number>>): Partial<Components> => ({
   // @ts-ignore - The inline prop is passed by ReactMarkdown but not in type defs
-  code: EnhancedCodeBlock, // Use the dynamically imported component
+  code: ({ node, inline, className, children, ...props }) => {
+    const match = /language-(\w+)/.exec(className || '');
+    const lang = match ? match[1].toLowerCase() : '';
+    const codeContent = String(children).replace(/\n$/, ''); // Get the code content
+
+    if (lang === 'mermaid' && !inline) {
+      // Pass a unique suffix for the ID to avoid collisions if multiple diagrams are in the same message
+      // This could be based on node properties or a simple counter if available
+      // For now, let's assume one mermaid diagram per code block instance is fine without a suffix
+      return <MermaidDisplay mermaidCode={codeContent} />;
+    }
+
+    // Fallback to EnhancedCodeBlock for other languages or inline code
+    // @ts-ignore
+    return <EnhancedCodeBlock node={node} inline={inline} className={className} {...props}>{children}</EnhancedCodeBlock>;
+  },
   
   // @ts-ignore - Custom tag handling requires ignoring some types
   sourcecite: ({ node, ...props }) => { 
@@ -94,13 +118,13 @@ const createMarkdownComponents = (citationMap: React.MutableRefObject<Map<string
       }
     } catch (error) {
       console.error("Error parsing SourceCite JSON content:", error, jsonContent);
-      return <span className="text-red-500">[Invalid SourceCite JSON]</span>;
+      // return <span className="text-red-500">[Invalid SourceCite JSON]</span>;
     }
     
     return (
       <SourceCitationDisplay 
         jsonContent={jsonContent}
-        citationNumber={citationNumber} 
+        citationNumber={citationNumber ?? 0} 
       />
     );
   },

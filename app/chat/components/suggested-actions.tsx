@@ -35,6 +35,16 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
       label: 'traditional methods for TCIU',
       action: 'Compare and contrast Spacekime Analytics with traditional statistical methods in terms of addressing Time Complexity and Inferential Uncertainty (TCIU).',
     },
+    {
+      title: '🌊 Visualize',
+      label: 'Spacekime analytics workflow',
+      action: 'Illustrate the typical workflow of a Spacekime analytics project using a Mermaid diagram. Explain each stage.',
+    },
+    {
+      title: '🧩 Diagram',
+      label: 'components of TCIU',
+      action: 'Create a Mermaid diagram to visualize the main components contributing to Time Complexity and Inferential Uncertainty (TCIU) in data analysis.',
+    },
   ];
 
   // Determine grid and item visibility based on panel state
