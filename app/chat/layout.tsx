@@ -25,7 +25,7 @@ import {
 // Inner component to access context after Provider
 function ChatLayoutContent({ children }: { children: React.ReactNode }) {
   const { isEbookPanelOpen, openEbookPanel } = useEbookContext();
-  const [showEbookHint, setShowEbookHint] = useState(true);
+  const [showEbookHint, setShowEbookHint] = useState(false);
 
   useEffect(() => {
     const hintShown = localStorage.getItem('ebookHintShown');
