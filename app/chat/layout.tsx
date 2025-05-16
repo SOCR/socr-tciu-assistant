@@ -27,13 +27,13 @@ function ChatLayoutContent({ children }: { children: React.ReactNode }) {
   const { isEbookPanelOpen, openEbookPanel } = useEbookContext();
   const [showEbookHint, setShowEbookHint] = useState(true);
 
-  // useEffect(() => {
-  //   const hintShown = localStorage.getItem('ebookHintShown');
-  //   if (!hintShown) {
-  //     setShowEbookHint(true);
-  //     localStorage.setItem('ebookHintShown', 'true');
-  //   }
-  // }, []);
+  useEffect(() => {
+    const hintShown = localStorage.getItem('ebookHintShown');
+    if (!hintShown) {
+      setShowEbookHint(true);
+      localStorage.setItem('ebookHintShown', 'true');
+    }
+  }, []);
 
   const handleOpenEbook = () => {
     // Open with the first chapter by default if none is set
